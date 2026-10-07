@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>地雷チェック</title>
+<style>
+:root{--ink:#0F1826;--panel:#17223A;--panel2:#1D2A45;--rule:#2A3A5C;
+  --paper:#E9E7E1;--muted:#8794AE;--up:#E0564A;--down:#4C87DE;--brass:#D6B770;--green:#6FBF8B;}
+*{box-sizing:border-box}
+body{background:var(--ink);color:var(--paper);margin:0;padding:20px 16px 60px;
+  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;
+  font-feature-settings:"palt";line-height:1.7;font-variant-numeric:tabular-nums;}
+.inner{max-width:960px;margin:0 auto}
+h1{font-size:22px;font-weight:700;margin:0 0 3px}
+h2{font-size:15px;font-weight:700;margin:0 0 10px}
+.sub{color:var(--muted);font-size:12.5px;margin:0 0 18px}
+.drop{border:2px dashed var(--rule);border-radius:4px;padding:28px 18px;text-align:center;
+  background:var(--panel);cursor:pointer;margin-bottom:18px}
+.drop:hover,.drop.over{border-color:var(--brass)}
+.msg{background:var(--panel);border-left:3px solid var(--brass);padding:10px 13px;
+  font-size:12.5px;margin:12px 0;white-space:pre-wrap}
+.sec{border-left:2px solid var(--rule);padding-left:14px;margin-bottom:24px}
+.row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;
+  border-bottom:1px solid var(--rule);font-size:13.5px}
+.row:last-child{border-bottom:none}
+.k{color:var(--muted);flex-shrink:0}.v{text-align:right}
+.note{font-size:12.5px;color:var(--muted);margin-top:8px}
+.card{border:1px solid var(--rule);border-left-width:5px;background:var(--panel);
+  padding:14px 16px;margin-bottom:12px;border-radius:0 3px 3px 0}
+.hd{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.nm{font-size:16px;font-weight:700}
+.lab{font-size:15px;font-weight:700}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0}
+.tag{font-size:12px;padding:3px 9px;border-radius:12px;border:1px solid var(--rule);background:var(--panel2)}
+.tag.f{border-color:var(--up);color:var(--up)}
+.tag.w{border-color:var(--brass);color:var(--brass)}
+.tag.p{border-color:var(--green);color:var(--green)}
+table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
+th,td{padding:5px 7px;border-bottom:1px solid var(--rule);text-align:right;white-space:nowrap}
+th{color:var(--muted);font-weight:400}
+th:first-child,td:first-child{text-align:left}
+.news{margin-top:10px;font-size:12.5px}
+.news a{color:var(--paper);text-decoration:none;border-bottom:1px solid var(--rule)}
+.news a:hover{border-bottom-color:var(--brass)}
+.news .meta{color:var(--muted);font-size:11.5px}
+.empty{color:var(--muted);font-size:13px;padding:16px 0}
+.foot{border-top:1px solid var(--rule);margin-top:30px;padding-top:15px;font-size:12px;color:var(--muted)}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="inner">
+  <h1>地雷チェック</h1>
+  <p class="sub">検証ノートでテクニカルに合格した銘柄が、財務や決算日程の面で危なくないかを確認します。</p>
+  <div class="drop" id="drop">
+    <div style="font-size:15px;font-weight:700;margin-bottom:5px">fundamentals.json をここにドロップ</div>
+    <div style="color:var(--muted);font-size:12.5px">fundamental_filter.py を実行すると同じフォルダに出ます</div>
+    <input type="file" id="f" accept=".json" class="hide">
+  </div>
+  <div id="msg"></div>
+  <div id="view"><p class="empty">まだ読み込まれていません。</p></div>
+  <p class="foot">
+    この判定は過去データで検証されていません。各時点の財務を再現できないため、
+    「この基準で除外すると成績が良くなる」ことを数字で示せないためです。
+    テクニカルのルールとは信頼度の質が違うものとして扱い、
+    「買ってはいけない銘柄を外す」拒否権としてのみ使ってください。
+    ニュースの見出しは参考情報であり、判定には一切使っていません。
+  </p>
+</div>
+
+<script>
+"use strict";
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+function money(v){
+  if(v==null||isNaN(v)) return "—";
+  const a=Math.abs(v);
+  if(a>=1e12) return (v/1e12).toFixed(2)+"兆";
+  if(a>=1e8) return Math.round(v/1e8).toLocaleString()+"億";
+  return Math.round(v).toLocaleString();
+}
+const COL={"地雷":"var(--up)","要注意":"var(--brass)","問題なし":"var(--green)"};
+
+function render(data){
+  const rs=data.results||[];
+  if(!rs.length){ document.getElementById("view").innerHTML='<p class="empty">中身が空です。</p>'; return; }
+  const ok=rs.filter(r=>r.label==="問題なし"), wn=rs.filter(r=>r.label==="要注意"), ng=rs.filter(r=>r.label==="地雷");
+  let h='<div class="sec"><h2>結果</h2>'
+    + '<div class="row"><span class="k">通過（問題なし）</span><span class="v" style="color:var(--green);font-weight:700">'+ok.length+' 銘柄</span></div>'
+    + '<div class="row"><span class="k">要注意</span><span class="v" style="color:var(--brass);font-weight:700">'+wn.length+' 銘柄</span></div>'
+    + '<div class="row"><span class="k">地雷</span><span class="v" style="color:var(--up);font-weight:700">'+ng.length+' 銘柄</span></div>'
+    + '<div class="row"><span class="k">保有想定</span><span class="v">'+(data.holding_days||"—")+' 日</span></div>'
+    + '<div class="row"><span class="k">取得日時</span><span class="v">'+esc(data.generated||"—")+'</span></div>';
+  if(ok.length) h+='<p class="note">通過したのは <b>'+ok.map(r=>esc(r.code+" "+r.name)).join("、")+'</b> です。'
+    + 'これは「買ってよい」ではなく「財務上の赤信号が無い」という意味だけです。</p>';
+  else h+='<p class="note" style="color:var(--up)">通過した銘柄がありません。今日は見送りが妥当です。</p>';
+  h+='</div>';
+
+  rs.forEach(r=>{
+    const m=r.metrics||{};
+    h+='<div class="card" style="border-left-color:'+COL[r.label]+'">'
+      + '<div class="hd"><span class="nm">'+esc(r.code+" "+r.name)+'</span>'
+      + '<span class="lab" style="color:'+COL[r.label]+'">'+esc(r.label)+'</span></div>';
+    const tags=[].concat(
+      (r.fails||[]).map(x=>'<span class="tag f">'+esc(x)+'</span>'),
+      (r.warns||[]).map(x=>'<span class="tag w">'+esc(x)+'</span>'),
+      (r.pluses||[]).map(x=>'<span class="tag p">'+esc(x)+'</span>'));
+    if(tags.length) h+='<div class="tags">'+tags.join("")+'</div>';
+
+    const eq=m["自己資本比率"], yoy=m["売上YoY"], d2e=m["決算まで日数"];
+    h+='<table><tbody>'
+      + tr("営業利益（最新）", money(m["営業利益"]), m["営業利益"]!=null&&m["営業利益"]<0?"var(--up)":null)
+      + tr("自己資本比率", eq==null?"—":eq.toFixed(0)+"%", eq!=null&&eq<20?"var(--up)":null)
+      + tr("売上 前年同期比", yoy==null?"—":(yoy>=0?"+":"")+yoy.toFixed(1)+"%", yoy!=null?(yoy>0?"var(--green)":"var(--up)"):null)
+      + tr("次の決算", (m["決算予定日"]?esc(m["決算予定日"]):"不明")+(d2e!=null?"（あと"+d2e+"日）":""),
+           d2e!=null&&d2e>=0&&d2e<=(data.holding_days||12)?"var(--up)":null)
+      + tr("時価総額", money(m["時価総額"])+"円")
+      + tr("PER / PBR", (m["PER"]?(+m["PER"]).toFixed(1):"—")+" / "+(m["PBR"]?(+m["PBR"]).toFixed(2):"—"))
+      + '</tbody></table>';
+
+    const hist=[["売上",m["売上推移"]],["営業利益",m["営業利益推移"]],["純利益",m["純利益推移"]]].filter(x=>x[1]&&x[1].length);
+    if(hist.length){
+      h+='<table style="margin-top:6px"><thead><tr><th>推移（新しい順）</th>'
+        + (m["売上推移"]||[]).map((_,i)=>'<th>'+(i===0?"最新":i+"期前")+'</th>').join("")+'</tr></thead><tbody>';
+      hist.forEach(([lab,vals])=>{
+        h+='<tr><td>'+lab+'</td>'+vals.map(v=>'<td style="color:'+(v<0?"var(--up)":"inherit")+'">'+money(v)+'</td>').join("")+'</tr>';
+      });
+      h+='</tbody></table>';
+    }
+    const miss=m["取得できなかった項目"]||[];
+    if(miss.length) h+='<p class="note">取得できなかった項目: '+esc(miss.join("、"))+'。判定の根拠が欠けているので、通過していても鵜呑みにしないでください。</p>';
+
+    if(r.news&&r.news.length){
+      h+='<div class="news"><div class="meta" style="margin-bottom:4px">最近の見出し（判定には使っていません）</div>';
+      r.news.forEach(n=>{
+        const t=esc(n.title);
+        h+='<div>'+(n.link?'<a href="'+esc(n.link)+'" target="_blank" rel="noopener">'+t+'</a>':t)
+          + ' <span class="meta">'+esc(n.publisher||"")+(n.date?" ・"+esc(n.date):"")+'</span></div>';
+      });
+      h+='</div>';
+    }
+    h+='</div>';
+  });
+  document.getElementById("view").innerHTML=h;
+}
+function tr(k,v,col){
+  return '<tr><td>'+k+'</td><td colspan="9" style="text-align:right'+(col?';color:'+col+';font-weight:700':'')+'">'+v+'</td></tr>';
+}
+
+const drop=document.getElementById("drop"), f=document.getElementById("f");
+drop.onclick=()=>f.click();
+drop.ondragover=e=>{e.preventDefault();drop.classList.add("over");};
+drop.ondragleave=()=>drop.classList.remove("over");
+drop.ondrop=e=>{e.preventDefault();drop.classList.remove("over");load(e.dataTransfer.files);};
+f.onchange=e=>{load(e.target.files);e.target.value="";};
+function load(files){
+  if(!files||!files.length) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      document.getElementById("msg").innerHTML="";
+      render(d);
+      try{ localStorage.setItem("jirai:last", r.result); }catch(e){}
+    }catch(e){
+      document.getElementById("msg").innerHTML='<div class="msg">読み込めませんでした。fundamental_filter.py が出力した fundamentals.json を入れてください。</div>';
+    }
+  };
+  r.readAsText(files[0],"utf-8");
+}
+try{
+  const last=localStorage.getItem("jirai:last");
+  if(last) render(JSON.parse(last));
+}catch(e){}
+</script>
+</body>
+</html>

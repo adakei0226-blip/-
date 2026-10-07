@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>検証ノート</title>
+<style>
+:root{
+  --ink:#0F1826; --panel:#17223A; --panel2:#1D2A45; --rule:#2A3A5C;
+  --paper:#E9E7E1; --muted:#8794AE; --up:#E0564A; --down:#4C87DE;
+  --brass:#D6B770; --green:#6FBF8B;
+}
+*{box-sizing:border-box}
+body{background:var(--ink);color:var(--paper);margin:0;padding:20px 16px 60px;
+  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;
+  font-feature-settings:"palt";line-height:1.7;font-variant-numeric:tabular-nums;}
+.inner{max-width:960px;margin:0 auto}
+h1{font-size:22px;font-weight:700;margin:0 0 3px}
+h2{font-size:15px;font-weight:700;margin:0 0 10px}
+.sub{color:var(--muted);font-size:12.5px;margin:0 0 16px}
+.tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--rule)}
+.tb{background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);
+  padding:8px 14px;font:inherit;font-size:13.5px;cursor:pointer;margin-bottom:-1px}
+.tb.on{color:var(--paper);border-bottom-color:var(--brass);font-weight:700}
+select,input,textarea{background:var(--panel2);color:var(--paper);border:1px solid var(--rule);
+  border-radius:3px;padding:6px 9px;font:inherit;font-size:13px;font-variant-numeric:tabular-nums}
+textarea{width:100%;resize:vertical;min-height:50px}
+select:focus-visible,input:focus-visible,textarea:focus-visible,button:focus-visible{
+  outline:2px solid var(--brass);outline-offset:2px}
+button{background:var(--panel2);color:var(--paper);border:1px solid var(--rule);border-radius:3px;
+  padding:7px 14px;font:inherit;font-size:13px;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--brass)}
+button:disabled{opacity:.45;cursor:default}
+.primary{background:var(--brass);color:var(--ink);border-color:var(--brass);font-weight:700}
+.drop{border:2px dashed var(--rule);border-radius:4px;padding:30px 18px;text-align:center;
+  background:var(--panel);cursor:pointer}
+.drop:hover,.drop.over{border-color:var(--brass)}
+.msg{background:var(--panel);border-left:3px solid var(--brass);padding:10px 13px;
+  font-size:12.5px;margin:12px 0;white-space:pre-wrap}
+.sec{border-left:2px solid var(--rule);padding-left:14px;margin-bottom:24px}
+.row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;
+  border-bottom:1px solid var(--rule);font-size:13.5px}
+.row:last-child{border-bottom:none}
+.k{color:var(--muted);flex-shrink:0} .v{text-align:right}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 24px}
+.form{display:grid;grid-template-columns:repeat(4,1fr);gap:9px 11px}
+.span2{grid-column:span 2} .span4{grid-column:span 4}
+@media(max-width:760px){.grid,.form{grid-template-columns:1fr}.span2,.span4{grid-column:span 1}}
+label{display:block;font-size:11px;color:var(--muted);margin-bottom:3px}
+.form input,.form select{width:100%}
+.note{font-size:12.5px;color:var(--muted);margin-top:8px}
+.verdict{border-left:4px solid var(--brass);background:var(--panel);padding:14px 16px;margin-bottom:16px}
+.verdict .big{font-size:25px;font-weight:700;line-height:1.25}
+.hero{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);
+  border:1px solid var(--rule);margin-bottom:14px}
+@media(max-width:760px){.hero{grid-template-columns:repeat(2,1fr)}}
+.cell{background:var(--panel);padding:12px 13px}
+.cell .lab{font-size:11px;color:var(--muted)}
+.cell .big{font-size:24px;font-weight:700;line-height:1.25}
+.cell .sm{font-size:11.5px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{padding:6px 7px;border-bottom:1px solid var(--rule);text-align:right;white-space:nowrap}
+th{color:var(--muted);font-weight:400}
+th:first-child,td:first-child{text-align:left}
+.scroll{overflow-x:auto;max-height:400px;overflow-y:auto}
+.ok{color:var(--green)} .warn{color:var(--up)} .amber{color:var(--brass)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chip{padding:5px 12px;font-size:12.5px;border-radius:20px}
+.chip.on{background:var(--brass);color:var(--ink);border-color:var(--brass);font-weight:700}
+.link{background:none;border:none;color:var(--muted);padding:2px 6px;font-size:12px}
+.link:hover{color:var(--brass)}
+.stock{border:1px solid var(--rule);border-left-width:4px;background:var(--panel);
+  padding:12px 14px;margin-bottom:10px;border-radius:0 3px 3px 0}
+.stock .hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.stock .nm{font-size:15px;font-weight:700}
+.bar{height:6px;background:var(--panel2);border:1px solid var(--rule);position:relative;
+  width:90px;display:inline-block;vertical-align:middle}
+.bar i{position:absolute;left:0;top:0;bottom:0;background:var(--brass);opacity:.7}
+.card{border-left:3px solid var(--green);background:var(--panel2);padding:10px 12px;margin-top:8px}
+.empty{color:var(--muted);font-size:13px;padding:16px 0}
+.foot{border-top:1px solid var(--rule);margin-top:30px;padding-top:15px;font-size:12px;color:var(--muted)}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="inner">
+  <h1>検証ノート</h1>
+  <p class="sub">トレンドを前提条件にしてルールを検証し、統計に合格したものだけを今日の値動きに当てます。通信しません。</p>
+  <div class="tabs" id="tabs"></div>
+  <div id="msg"></div>
+  <div id="view"></div>
+  <p class="foot">
+    ここに出る数字は、読み込んだデータの中で数えた過去の実測値と、あなたが入力した記録の集計です。
+    将来の値動きや成績を保証するものではなく、投資助言でもありません。
+    国内株の現物取引では、同一銘柄・同一資金での1日1往復を超える売買は差金決済に該当し発注できません。
+    データはこのブラウザに保存されます。別のブラウザや別のPCには引き継がれないので、
+    記録は定期的にCSVで書き出してください。
+  </p>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   検証ノート（スタンドアロン版）
+   ・外部ライブラリなし。オフラインで動く
+   ・保存はこのブラウザの localStorage
+   ============================================================ */
+
+/* ---------------- 保存 ---------------- */
+const LS = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} },
+};
+const PERSIST_BARS = 1500;   // 保存する本数の上限（容量対策）
+
+/* ---------------- CSV ---------------- */
+function readSmart(file){
+  return new Promise((res,rej)=>{
+    const r = new FileReader();
+    r.onerror = ()=>rej(new Error("read"));
+    r.onload = ()=>{
+      const b = r.result; let t;
+      try { t = new TextDecoder("utf-8",{fatal:true}).decode(b); }
+      catch(e){ try { t = new TextDecoder("shift_jis").decode(b); } catch(e2){ t = new TextDecoder("utf-8").decode(b); } }
+      res(t.replace(/^\uFEFF/,""));
+    };
+    r.readAsArrayBuffer(file);
+  });
+}
+const HEAD = {
+  t:[/日付/,/日時/,/^date$/i,/datetime/i], o:[/始値/,/^open$/i],
+  h:[/高値/,/^high$/i], l:[/安値/,/^low$/i], c:[/終値/,/^close$/i],
+  v:[/出来高/,/^volume$/i,/売買高/],
+};
+const num = s => parseFloat(String(s==null?"":s).replace(/[,"'\s円]/g,""));
+function parseDate(s){
+  const x = String(s).trim().replace(/["']/g,"");
+  let m = x.match(/(\d{4})[/\-年.](\d{1,2})[/\-月.](\d{1,2})/);
+  if(m) return m[1]+"-"+String(m[2]).padStart(2,"0")+"-"+String(m[3]).padStart(2,"0");
+  m = x.match(/^(\d{4})(\d{2})(\d{2})$/);
+  return m ? m[1]+"-"+m[2]+"-"+m[3] : null;
+}
+function splitLine(l,d){
+  const o=[]; let cur="",q=false;
+  for(let i=0;i<l.length;i++){
+    const ch=l[i];
+    if(q){ if(ch==='"'){ if(l[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=ch; }
+    else if(ch==='"') q=true;
+    else if(ch===d){ o.push(cur.trim()); cur=""; }
+    else cur+=ch;
+  }
+  o.push(cur.trim()); return o;
+}
+function parseCSV(text){
+  const lines = text.split(/\r?\n/).filter(l=>l.trim() && !/^\s*[#;]/.test(l));
+  if(!lines.length) throw new Error("空のファイルです。");
+  const delim = [",","\t",";"].map(d=>({d,n:(lines[0].match(new RegExp("\\"+d,"g"))||[]).length}))
+    .sort((a,b)=>b.n-a.n)[0].d;
+  const sp = l=>splitLine(l,delim);
+  let hi=-1, map=null;
+  for(let i=0;i<Math.min(5,lines.length);i++){
+    const cells=sp(lines[i]), m={};
+    Object.keys(HEAD).forEach(k=>{
+      const j=cells.findIndex(c=>HEAD[k].some(p=>p.test(c)));
+      if(j>=0) m[k]=j;
+    });
+    if(["o","h","l","c"].every(k=>m[k]!=null)){ hi=i; map=m; break; }
+  }
+  if(!map){ map={t:0,o:1,h:2,l:3,c:4,v:5}; hi=-1; }
+  const out=[];
+  for(let i=hi+1;i<lines.length;i++){
+    const c=sp(lines[i]);
+    const o=num(c[map.o]),h=num(c[map.h]),l=num(c[map.l]),cl=num(c[map.c]);
+    if(![o,h,l,cl].every(Number.isFinite) || h<l || h<=0) continue;
+    out.push({
+      t:(map.t!=null?parseDate(c[map.t]):null) || ("#"+out.length),
+      o:o,h:h,l:l,c:cl, v: map.v!=null ? (num(c[map.v])||0) : 0,
+    });
+  }
+  if(out.length<120) throw new Error("読めた行が "+out.length+" 行でした（120行以上必要）");
+  if(out[0].t.charAt(0)!=="#") out.sort((a,b)=>a.t.localeCompare(b.t));
+  return out;
+}
+
+/* ---------------- 指標 ---------------- */
+function ema(a,n){ const k=2/(n+1),o=[]; let p;
+  a.forEach((v,i)=>{ if(i<n-1){o.push(null);return;}
+    p = p===undefined ? a.slice(0,n).reduce((x,y)=>x+y,0)/n : v*k+p*(1-k); o.push(p); });
+  return o; }
+function sma(a,n){ return a.map((_,i)=> i<n-1?null:a.slice(i-n+1,i+1).reduce((x,y)=>x+y,0)/n); }
+function stdev(a,n){ return a.map((_,i)=>{ if(i<n-1) return null;
+  const w=a.slice(i-n+1,i+1), m=w.reduce((x,y)=>x+y,0)/n;
+  return Math.sqrt(w.reduce((x,y)=>x+(y-m)*(y-m),0)/n); }); }
+function rsiArr(c,n){ n=n||14;
+  const o=new Array(c.length).fill(null); let ag=0,al=0;
+  for(let i=1;i<=n&&i<c.length;i++){ const d=c[i]-c[i-1]; if(d>=0) ag+=d; else al-=d; }
+  ag/=n; al/=n;
+  if(c.length>n) o[n]= al===0?100:100-100/(1+ag/al);
+  for(let i=n+1;i<c.length;i++){ const d=c[i]-c[i-1];
+    ag=(ag*(n-1)+Math.max(d,0))/n; al=(al*(n-1)+Math.max(-d,0))/n;
+    o[i]= al===0?100:100-100/(1+ag/al); }
+  return o; }
+function atrArr(c,n){ n=n||14;
+  const tr=c.map((k,i)=> i===0 ? k.h-k.l
+    : Math.max(k.h-k.l, Math.abs(k.h-c[i-1].c), Math.abs(k.l-c[i-1].c)));
+  const o=new Array(c.length).fill(null);
+  if(c.length<=n) return o;
+  let a=tr.slice(1,n+1).reduce((x,y)=>x+y,0)/n; o[n]=a;
+  for(let i=n+1;i<c.length;i++){ a=(a*(n-1)+tr[i])/n; o[i]=a; }
+  return o; }
+function vwapArr(c,n){ n=n||20;
+  return c.map((_,i)=>{ if(i<n-1) return null;
+    let pv=0,vv=0,sp=0;
+    for(let j=i-n+1;j<=i;j++){ const tp=(c[j].h+c[j].l+c[j].c)/3; pv+=tp*c[j].v; vv+=c[j].v; sp+=tp; }
+    return vv>0 ? pv/vv : sp/n; }); }
+
+/* ---------------- ローソク足の形 ---------------- */
+const bd=k=>Math.abs(k.c-k.o), upW=k=>k.h-Math.max(k.o,k.c),
+      loW=k=>Math.min(k.o,k.c)-k.l, rng=k=>k.h-k.l;
+const P = {
+  上影陽線:k=>k.c>k.o&&rng(k)>0&&upW(k)>=bd(k)*1.5&&upW(k)>=rng(k)*0.4,
+  上影陰線:k=>k.c<k.o&&rng(k)>0&&upW(k)>=bd(k)*1.5&&upW(k)>=rng(k)*0.4,
+  下影陰線:k=>k.c<k.o&&rng(k)>0&&loW(k)>=bd(k)*1.5&&loW(k)>=rng(k)*0.4,
+  長い上ヒゲ:k=>rng(k)>0&&upW(k)>=rng(k)*0.5,
+  長い下ヒゲ:k=>rng(k)>0&&loW(k)>=rng(k)*0.5,
+};
+const engulfBull=(c,i)=>c[i].c>c[i].o&&c[i-1].c<c[i-1].o&&c[i].c>=c[i-1].o&&c[i].o<=c[i-1].c;
+const engulfBear=(c,i)=>c[i].c<c[i].o&&c[i-1].c>c[i-1].o&&c[i].c<=c[i-1].o&&c[i].o>=c[i-1].c;
+const harami=(c,i)=>c[i].h<=c[i-1].h&&c[i].l>=c[i-1].l&&rng(c[i-1])>0;
+
+/* ---------------- 状態（ダウ理論） ---------------- */
+function buildState(c){
+  const K=3, n=c.length, cl=c.map(x=>x.c);
+  const e20=ema(cl,20), e50=ema(cl,50), m25=sma(cl,25), m75=sma(cl,75);
+  const r=rsiArr(cl,14), a=atrArr(c,14), vw=vwapArr(c,20);
+  const sd20=stdev(cl,20);
+  const va=a.filter(v=>v!=null);
+  const atrAvg=va.reduce((x,y)=>x+y,0)/(va.length||1);
+  const isPH=new Array(n).fill(false), isPL=new Array(n).fill(false);
+  for(let i=K;i<n-K;i++){
+    let h=true,l=true;
+    for(let j=i-K;j<=i+K;j++){
+      if(j===i) continue;
+      if(c[j].h>=c[i].h) h=false;
+      if(c[j].l<=c[i].l) l=false;
+    }
+    isPH[i]=h; isPL[i]=l;
+  }
+  const trend=new Array(n).fill("レンジ"), strength=new Array(n).fill(0),
+        pressure=new Array(n).fill(50), tlUp=new Array(n).fill(null),
+        tlDn=new Array(n).fill(null), chUp=new Array(n).fill(null);
+  /* ボリンジャーバンドと、その幅が過去100本の中でどれだけ狭いか */
+  const bbU=new Array(n).fill(null), bbL=new Array(n).fill(null),
+        bbW=new Array(n).fill(null), squeeze=new Array(n).fill(false),
+        expand=new Array(n).fill(false);
+  const mid20=sma(cl,20);            /* ループの外で一度だけ計算する */
+  for(let i=0;i<n;i++){
+    if(sd20[i]==null||mid20[i]==null||!mid20[i]) continue;
+    bbU[i]=mid20[i]+2*sd20[i]; bbL[i]=mid20[i]-2*sd20[i];
+    bbW[i]=(bbU[i]-bbL[i])/mid20[i]*100;
+  }
+  for(let i=100;i<n;i++){
+    if(bbW[i]==null) continue;
+    const win=[];
+    for(let j=i-99;j<=i;j++) if(bbW[j]!=null) win.push(bbW[j]);
+    if(win.length<50) continue;
+    const sorted=win.slice().sort((x,y)=>x-y);
+    const q20=sorted[Math.floor(sorted.length*0.2)];
+    const q80=sorted[Math.floor(sorted.length*0.8)];
+    squeeze[i]= bbW[i]<=q20;
+    expand[i]= bbW[i]>=q80 && bbW[i-1]!=null && bbW[i]>bbW[i-1];
+  }
+  /* 25日平均の傾き（ATR基準で正規化） */
+  const maSlope=new Array(n).fill(0);
+  for(let i=5;i<n;i++){
+    if(m25[i]==null||m25[i-5]==null) continue;
+    const at=a[i]!=null?a[i]:atrAvg;
+    maSlope[i]= at>0 ? (m25[i]-m25[i-5])/at : 0;
+  }
+  /* RSIダイバージェンスと、水平線の近さ */
+  const divBull=new Array(n).fill(false), divBear=new Array(n).fill(false),
+        atLevel=new Array(n).fill(false);
+  const allPH=[], allPL=[];
+  const pH=[], pL=[];
+  for(let i=0;i<n;i++){
+    const p=i-K;
+    if(p>=0){
+      if(isPH[p]){ pH.push({i:p,v:c[p].h}); allPH.push({i:p,v:c[p].h}); }
+      if(isPL[p]){ pL.push({i:p,v:c[p].l}); allPL.push({i:p,v:c[p].l}); }
+      /* 確定したのが安値で、前の安値より低いのにRSIは高い → 強気ダイバージェンス */
+      if(isPL[p] && pL.length>=2){
+        const a2=pL[pL.length-1], a1=pL[pL.length-2];
+        if(a2.v<a1.v && r[a2.i]!=null && r[a1.i]!=null && r[a2.i]>r[a1.i]+2) divBull[i]=true;
+      }
+      if(isPH[p] && pH.length>=2){
+        const b2=pH[pH.length-1], b1=pH[pH.length-2];
+        if(b2.v>b1.v && r[b2.i]!=null && r[b1.i]!=null && r[b2.i]<r[b1.i]-2) divBear[i]=true;
+      }
+    }
+    /* 過去のピボット水準（＝水平線）に今の終値が近いか */
+    {
+      const at=a[i]!=null?a[i]:atrAvg, tol=at*0.5;
+      let hit=false;
+      const scan=(arr)=>{ for(let q=arr.length-1;q>=0;q--){
+        if(arr[q].i<i-120) break;
+        if(arr[q].i>i-5) continue;
+        if(Math.abs(c[i].c-arr[q].v)<=tol){ hit=true; return; } } };
+      scan(allPL); if(!hit) scan(allPH);
+      atLevel[i]=hit;
+    }
+    const h2=pH[pH.length-1], h1=pH[pH.length-2];
+    const l2=pL[pL.length-1], l1=pL[pL.length-2];
+    let tr="レンジ";
+    if(h1&&h2&&l1&&l2){
+      if(h2.v>h1.v && l2.v>l1.v) tr="上昇";
+      else if(h2.v<h1.v && l2.v<l1.v) tr="下降";
+    }
+    trend[i]=tr;
+    const at=a[i]!=null?a[i]:atrAvg;
+    let sc = tr==="レンジ"?0:40;
+    if(e20[i]!=null&&e50[i]!=null&&at>0){
+      const g=(e20[i]-e50[i])/at;
+      sc += Math.min(30,Math.abs(g)*25) * (((tr==="上昇"&&g>0)||(tr==="下降"&&g<0))?1:0);
+    }
+    if(e20[i]!=null&&e20[i-10]!=null&&at>0){
+      const sl=(e20[i]-e20[i-10])/at;
+      sc += Math.min(30,Math.abs(sl)*12) * (((tr==="上昇"&&sl>0)||(tr==="下降"&&sl<0))?1:0);
+    }
+    strength[i]=Math.round(Math.max(0,Math.min(100,sc)));
+    if(i>=10){
+      let uw=0,lw=0,rg=0,bear=0;
+      for(let j=i-9;j<=i;j++){ uw+=upW(c[j]); lw+=loW(c[j]); rg+=rng(c[j]); if(c[j].c<c[j].o) bear++; }
+      const wick = (uw+lw)>0 ? uw/(uw+lw) : 0.5;
+      pressure[i] = rg<=0 ? 50 : Math.round(100*(0.5*wick+0.5*(bear/10)));
+    }
+    if(l1&&l2&&l2.v>l1.v&&l2.i>l1.i){
+      const sl=(l2.v-l1.v)/(l2.i-l1.i), val=l1.v+sl*(i-l1.i);
+      tlUp[i]={val:val};
+      let w=0;
+      for(let j=Math.max(l1.i,i-40);j<=i;j++) w=Math.max(w, c[j].h-(l1.v+sl*(j-l1.i)));
+      chUp[i]=val+w;
+    }
+    if(h1&&h2&&h2.v<h1.v&&h2.i>h1.i){
+      const sl=(h2.v-h1.v)/(h2.i-h1.i);
+      tlDn[i]={val:h1.v+sl*(i-h1.i)};
+    }
+  }
+  return {c:c,e20:e20,e50:e50,m25:m25,m75:m75,r:r,a:a,vw:vw,atrAvg:atrAvg,
+          trend:trend,strength:strength,pressure:pressure,tlUp:tlUp,tlDn:tlDn,chUp:chUp,
+          bbU:bbU,bbL:bbL,bbW:bbW,squeeze:squeeze,expand:expand,
+          maSlope:maSlope,divBull:divBull,divBear:divBear,atLevel:atLevel};
+}
+
+/* ---------------- 市場全体の地合い ---------------- */
+/* 指数のCSV（名前が "_" で始まるもの）から、日付ごとの状態を作る */
+function buildMarket(c){
+  const S=buildState(c), m={};
+  const cl=c.map(x=>x.c), m25=sma(cl,25);
+  for(let i=0;i<c.length;i++){
+    m[c[i].t]={
+      above25: m25[i]!=null ? c[i].c>m25[i] : null,
+      trend: S.trend[i],
+      strength: S.strength[i],
+    };
+  }
+  return m;
+}
+/* その日にエントリーしてよいか。指数が無ければ常に true */
+function mktOK(mkt, mode, t){
+  if(!mkt || mode==="none") return true;
+  const d=mkt[t];
+  if(!d) return true;                 /* 指数に無い日は素通しする */
+  if(mode==="above25") return d.above25!==false;
+  if(mode==="notdown") return d.trend!=="下降";
+  if(mode==="both") return d.above25!==false && d.trend!=="下降";
+  return true;
+}
+
+/* ---------------- ルール ---------------- */
+const MIN_STRENGTH=40;
+function ctxOK(ctx,S,i){
+  if(ctx==="any") return true;
+  if(ctx==="up") return S.trend[i]==="上昇" && S.strength[i]>=MIN_STRENGTH;
+  if(ctx==="down") return S.trend[i]==="下降" && S.strength[i]>=MIN_STRENGTH;
+  /* レンジ：ダウ理論でレンジ、かつトレンドの強さが出ていないこと */
+  if(ctx==="range") return S.trend[i]==="レンジ" && S.strength[i]<MIN_STRENGTH;
+  return true;
+}
+const near=(x,y,t)=>Math.abs(x-y)<=t;
+const RULES = [
+  {id:"u_upw",ctx:"up",dir:"short",grp:"反転",name:"上昇中に上影陽線が出たら売り",fn:(c,S,i)=>P.上影陽線(c[i])},
+  {id:"u_upwB",ctx:"up",dir:"short",grp:"反転",name:"上昇中に長い上ヒゲが出たら売り",fn:(c,S,i)=>P.長い上ヒゲ(c[i])},
+  {id:"u_eng",ctx:"up",dir:"short",grp:"反転",name:"上昇中に陰の包み足が出たら売り",fn:(c,S,i)=>engulfBear(c,i)},
+  {id:"u_rsi",ctx:"up",dir:"short",grp:"反転",name:"上昇中にRSIが70を超えたら売り",fn:(c,S,i)=>S.r[i]!=null&&S.r[i]>70},
+  {id:"u_ch",ctx:"up",dir:"short",grp:"反転",name:"上昇中にチャネル上限に触れたら売り",fn:(c,S,i)=>!!S.chUp[i]&&c[i].h>=S.chUp[i]},
+  {id:"u_tlb",ctx:"up",dir:"short",grp:"反転",name:"上昇トレンドラインを終値で割ったら売り",
+   fn:(c,S,i)=>!!S.tlUp[i]&&!!S.tlUp[i-1]&&c[i-1].c>=S.tlUp[i-1].val&&c[i].c<S.tlUp[i].val},
+  {id:"u_tl",ctx:"up",dir:"long",grp:"継続",name:"上昇トレンドラインで反発したら買い",
+   fn:(c,S,i)=>!!S.tlUp[i]&&!!S.a[i]&&c[i].l<=S.tlUp[i].val+S.a[i]*0.3&&c[i].c>S.tlUp[i].val&&c[i].c>c[i].o},
+  {id:"u_ema",ctx:"up",dir:"long",grp:"継続",name:"上昇中にEMA20まで押して戻したら買い",
+   fn:(c,S,i)=>S.e20[i]!=null&&c[i].l<=S.e20[i]&&c[i].c>S.e20[i]},
+  {id:"u_engB",ctx:"up",dir:"long",grp:"継続",name:"上昇中に陽の包み足が出たら買い",fn:(c,S,i)=>engulfBull(c,i)},
+  {id:"u_low",ctx:"up",dir:"long",grp:"継続",name:"上昇中に下影陰線が出たら買い",fn:(c,S,i)=>P.下影陰線(c[i])},
+  {id:"u_brk",ctx:"up",dir:"long",grp:"継続",name:"上昇中に前日高値を上抜けたら買い",fn:(c,S,i)=>c[i].c>c[i-1].h},
+  {id:"u_vwap",ctx:"up",dir:"long",grp:"継続",name:"上昇中にVWAPを上抜けたら買い",
+   fn:(c,S,i)=>S.vw[i]!=null&&S.vw[i-1]!=null&&c[i-1].c<=S.vw[i-1]&&c[i].c>S.vw[i]},
+  {id:"u_har",ctx:"up",dir:"long",grp:"継続",name:"上昇中の押し目ではらみ足が出たら買い",
+   fn:(c,S,i)=>harami(c,i)&&S.e20[i]!=null&&near(c[i].l,S.e20[i],(S.a[i]||0)*0.8)},
+  {id:"d_low",ctx:"down",dir:"long",grp:"反転",name:"下降中に下影陰線が出たら買い",fn:(c,S,i)=>P.下影陰線(c[i])},
+  {id:"d_lowB",ctx:"down",dir:"long",grp:"反転",name:"下降中に長い下ヒゲが出たら買い",fn:(c,S,i)=>P.長い下ヒゲ(c[i])},
+  {id:"d_eng",ctx:"down",dir:"long",grp:"反転",name:"下降中に陽の包み足が出たら買い",fn:(c,S,i)=>engulfBull(c,i)},
+  {id:"d_rsi",ctx:"down",dir:"long",grp:"反転",name:"下降中にRSIが30を割ったら買い",fn:(c,S,i)=>S.r[i]!=null&&S.r[i]<30},
+  {id:"d_tlb",ctx:"down",dir:"long",grp:"反転",name:"下降トレンドラインを終値で上抜けたら買い",
+   fn:(c,S,i)=>!!S.tlDn[i]&&!!S.tlDn[i-1]&&c[i-1].c<=S.tlDn[i-1].val&&c[i].c>S.tlDn[i].val},
+  {id:"d_tl",ctx:"down",dir:"short",grp:"継続",name:"下降トレンドラインで跳ね返されたら売り",
+   fn:(c,S,i)=>!!S.tlDn[i]&&!!S.a[i]&&c[i].h>=S.tlDn[i].val-S.a[i]*0.3&&c[i].c<S.tlDn[i].val&&c[i].c<c[i].o},
+  {id:"d_ema",ctx:"down",dir:"short",grp:"継続",name:"下降中にEMA20まで戻して落ちたら売り",
+   fn:(c,S,i)=>S.e20[i]!=null&&c[i].h>=S.e20[i]&&c[i].c<S.e20[i]},
+  {id:"d_upw",ctx:"down",dir:"short",grp:"継続",name:"下降中に上影陰線が出たら売り",fn:(c,S,i)=>P.上影陰線(c[i])},
+  {id:"d_brk",ctx:"down",dir:"short",grp:"継続",name:"下降中に前日安値を下抜けたら売り",fn:(c,S,i)=>c[i].c<c[i-1].l},
+  {id:"d_vwap",ctx:"down",dir:"short",grp:"継続",name:"下降中にVWAPを下抜けたら売り",
+   fn:(c,S,i)=>S.vw[i]!=null&&S.vw[i-1]!=null&&c[i-1].c>=S.vw[i-1]&&c[i].c<S.vw[i]},
+  {id:"a_ma",ctx:"any",dir:"long",grp:"その他",name:"25日平均を上抜けたら買い",
+   fn:(c,S,i)=>S.m25[i]!=null&&S.m25[i-1]!=null&&c[i-1].c<=S.m25[i-1]&&c[i].c>S.m25[i]},
+  {id:"a_drop",ctx:"any",dir:"long",grp:"その他",name:"その日3%以上下げたら翌日買い",
+   fn:(c,S,i)=>(c[i].c-c[i].o)/c[i].o<-0.03},
+  /* 絞り込みタブで、銘柄2群・時期2分割・リターン5分割すべてを通過した組み合わせ */
+  {id:"drop5_dn",ctx:"any",dir:"long",grp:"絞り込み",
+   name:"下降トレンド中に5%以上下げたら翌日買い",
+   fn:(c,S,i)=>(c[i].c-c[i].o)/c[i].o<-0.05 && S.trend[i]==="下降"},
+
+  /* --- グランビルの法則（25日平均線の傾きと、価格がどちらから近づいたか） --- */
+  {id:"g_b1",ctx:"any",dir:"long",grp:"グランビル",name:"下向きだった平均線が上向きに転じ、価格が上抜けたら買い",
+   fn:(c,S,i)=>S.m25[i]!=null&&S.maSlope[i]>0.05&&S.maSlope[i-5]<0
+     &&c[i-1].c<=S.m25[i-1]&&c[i].c>S.m25[i]},
+  {id:"g_b2",ctx:"any",dir:"long",grp:"グランビル",name:"上向きの平均線を一度割ってから戻したら買い（押し目）",
+   fn:(c,S,i)=>S.m25[i]!=null&&S.maSlope[i]>0.05&&c[i].l<S.m25[i]&&c[i].c>S.m25[i]},
+  {id:"g_b3",ctx:"any",dir:"long",grp:"グランビル",name:"上向きの平均線に上から近づいたが割らずに反発したら買い",
+   fn:(c,S,i)=>S.m25[i]!=null&&S.a[i]&&S.maSlope[i]>0.05&&c[i].l>=S.m25[i]
+     &&c[i].l<=S.m25[i]+S.a[i]*0.5&&c[i].c>c[i].o},
+  {id:"g_b4",ctx:"any",dir:"long",grp:"グランビル",name:"下向きの平均線から大きく下に離れたら買い（自律反発）",
+   fn:(c,S,i)=>S.m25[i]!=null&&S.a[i]&&S.maSlope[i]<-0.05&&(S.m25[i]-c[i].c)>=S.a[i]*2},
+  {id:"g_s2",ctx:"any",dir:"short",grp:"グランビル",name:"下向きの平均線を一度上抜けてから落ちたら売り（戻り）",
+   fn:(c,S,i)=>S.m25[i]!=null&&S.maSlope[i]<-0.05&&c[i].h>S.m25[i]&&c[i].c<S.m25[i]},
+  {id:"g_s3",ctx:"any",dir:"short",grp:"グランビル",name:"下向きの平均線に下から近づいたが抜けずに反落したら売り",
+   fn:(c,S,i)=>S.m25[i]!=null&&S.a[i]&&S.maSlope[i]<-0.05&&c[i].h<=S.m25[i]
+     &&c[i].h>=S.m25[i]-S.a[i]*0.5&&c[i].c<c[i].o},
+  {id:"g_s4",ctx:"any",dir:"short",grp:"グランビル",name:"上向きの平均線から大きく上に離れたら売り（行きすぎ）",
+   fn:(c,S,i)=>S.m25[i]!=null&&S.a[i]&&S.maSlope[i]>0.05&&(c[i].c-S.m25[i])>=S.a[i]*2},
+
+  /* --- ボリンジャーバンド（スクイーズ中のレンジ両端と、拡大時の順張り） --- */
+  {id:"bb_lo",ctx:"range",dir:"long",grp:"バンド",name:"レンジかつバンドが狭いとき、下限で反発したら買い",
+   fn:(c,S,i)=>S.squeeze[i]&&S.bbL[i]!=null&&c[i].l<=S.bbL[i]&&c[i].c>S.bbL[i]},
+  {id:"bb_hi",ctx:"range",dir:"short",grp:"バンド",name:"レンジかつバンドが狭いとき、上限で反落したら売り",
+   fn:(c,S,i)=>S.squeeze[i]&&S.bbU[i]!=null&&c[i].h>=S.bbU[i]&&c[i].c<S.bbU[i]},
+  {id:"bb_exU",ctx:"any",dir:"long",grp:"バンド",name:"狭かったバンドが広がり、上限を超えたら買い（放れ）",
+   fn:(c,S,i)=>S.expand[i]&&S.squeeze[i-5]&&S.bbU[i]!=null&&c[i].c>S.bbU[i]},
+  {id:"bb_exD",ctx:"any",dir:"short",grp:"バンド",name:"狭かったバンドが広がり、下限を割ったら売り（放れ）",
+   fn:(c,S,i)=>S.expand[i]&&S.squeeze[i-5]&&S.bbL[i]!=null&&c[i].c<S.bbL[i]},
+
+  /* --- RSIダイバージェンス（価格と指標のズレ） --- */
+  {id:"dv_b",ctx:"any",dir:"long",grp:"ダイバージェンス",name:"価格は安値を更新したがRSIは切り上がったら買い",
+   fn:(c,S,i)=>S.divBull[i]},
+  {id:"dv_bL",ctx:"any",dir:"long",grp:"ダイバージェンス",name:"同上かつ水平線の近くなら買い",
+   fn:(c,S,i)=>S.divBull[i]&&S.atLevel[i]},
+  {id:"dv_s",ctx:"any",dir:"short",grp:"ダイバージェンス",name:"価格は高値を更新したがRSIは切り下がったら売り",
+   fn:(c,S,i)=>S.divBear[i]},
+  {id:"dv_sL",ctx:"any",dir:"short",grp:"ダイバージェンス",name:"同上かつ水平線の近くなら売り",
+   fn:(c,S,i)=>S.divBear[i]&&S.atLevel[i]},
+];
+const BASE={id:"__base",ctx:"any",dir:"long",grp:"基準",name:"（比較の基準）条件を見ずに毎日買う",fn:()=>true};
+
+function runRule(c,S,rule,H,tpM,slM,costPct,mode,from,to,mkt,mktMode){
+  const out=[];
+  let nextOK=0;   /* 前の取引が決済されるまで次のシグナルは取らない */
+  const lo=Math.max(60,from||0), hi=Math.min(c.length-H-2, to==null?c.length:to);
+  for(let i=lo;i<hi;i++){
+    if(i<nextOK) continue;
+    if(!ctxOK(rule.ctx,S,i)) continue;
+    if(!mktOK(mkt,mktMode,c[i].t)) continue;   /* 地合いが悪い日は入らない */
+    let hit; try{ hit=rule.fn(c,S,i); }catch(e){ hit=false; }
+    if(!hit) continue;
+    const at=S.a[i]; if(!at) continue;
+    const e=c[i+1].o; if(!(e>0)) continue;
+    const tp=at*tpM, sl=at*slM;
+    const tpP = rule.dir==="long" ? e+tp : e-tp;
+    const slP = rule.dir==="long" ? e-sl : e+sl;
+    let r=null, exitAt=Math.min(i+1+H,c.length-1);
+    const last=Math.min(i+1+H,c.length-1);
+    for(let j=i+1;j<=last;j++){
+      if(mode==="close"){
+        /* S株：終値で判定し、実際の決済は翌日の寄付。窓を開けた分の損得をそのまま受ける */
+        const br = rule.dir==="long" ? (c[j].c<=slP || c[j].c>=tpP) : (c[j].c>=slP || c[j].c<=tpP);
+        if(br){
+          const k=Math.min(j+1,c.length-1);
+          const px = k>j ? c[k].o : c[j].c;     /* 翌日が無ければ当日終値で代用 */
+          r = rule.dir==="long" ? px-e : e-px;
+          exitAt=k; break;
+        }
+      }else{
+        /* 逆指値・指値を置ける場合。ただし窓を開けて寄ったら、その寄値で約定する */
+        const gapSL = rule.dir==="long" ? c[j].o<=slP : c[j].o>=slP;
+        const gapTP = rule.dir==="long" ? c[j].o>=tpP : c[j].o<=tpP;
+        if(gapSL){ r = rule.dir==="long" ? c[j].o-e : e-c[j].o; exitAt=j; break; }
+        if(gapTP){ r = rule.dir==="long" ? c[j].o-e : e-c[j].o; exitAt=j; break; }
+        if(rule.dir==="long" ? c[j].l<=slP : c[j].h>=slP){ r=-sl; exitAt=j; break; }
+        if(rule.dir==="long" ? c[j].h>=tpP : c[j].l<=tpP){ r=tp; exitAt=j; break; }
+      }
+    }
+    if(r==null){
+      const x=c[exitAt].c;
+      r = rule.dir==="long" ? x-e : e-x;
+    }
+    out.push(((r - e*costPct/100)/e)*100);
+    nextOK = exitAt+1;
+  }
+  return out;
+}
+/* 利確・損切り幅を変えたときの比較用。保有日数も返す */
+function runRuleBars(c,S,rule,H,tpM,slM,costPct,mode,from,to,mkt,mktMode){
+  const rets=[], bars=[];
+  let nextOK=0;
+  const lo=Math.max(60,from||0), hi=Math.min(c.length-H-2, to==null?c.length:to);
+  for(let i=lo;i<hi;i++){
+    if(i<nextOK) continue;
+    if(!ctxOK(rule.ctx,S,i)) continue;
+    if(!mktOK(mkt,mktMode,c[i].t)) continue;
+    let hit; try{ hit=rule.fn(c,S,i); }catch(e){ hit=false; }
+    if(!hit) continue;
+    const at=S.a[i]; if(!at) continue;
+    const e=c[i+1].o; if(!(e>0)) continue;
+    const tp=at*tpM, sl=at*slM;
+    const tpP = rule.dir==="long" ? e+tp : e-tp;
+    const slP = rule.dir==="long" ? e-sl : e+sl;
+    let r=null, exitAt=Math.min(i+1+H,c.length-1);
+    const last=Math.min(i+1+H,c.length-1);
+    for(let j=i+1;j<=last;j++){
+      if(mode==="close"){
+        const br = rule.dir==="long" ? (c[j].c<=slP||c[j].c>=tpP) : (c[j].c>=slP||c[j].c<=tpP);
+        if(br){ const k=Math.min(j+1,c.length-1); const px=k>j?c[k].o:c[j].c;
+          r = rule.dir==="long" ? px-e : e-px; exitAt=k; break; }
+      }else{
+        const gS = rule.dir==="long" ? c[j].o<=slP : c[j].o>=slP;
+        const gT = rule.dir==="long" ? c[j].o>=tpP : c[j].o<=tpP;
+        if(gS||gT){ r = rule.dir==="long" ? c[j].o-e : e-c[j].o; exitAt=j; break; }
+        if(rule.dir==="long" ? c[j].l<=slP : c[j].h>=slP){ r=-sl; exitAt=j; break; }
+        if(rule.dir==="long" ? c[j].h>=tpP : c[j].l<=tpP){ r=tp; exitAt=j; break; }
+      }
+    }
+    if(r==null){ const x=c[exitAt].c; r = rule.dir==="long" ? x-e : e-x; }
+    rets.push(((r - e*costPct/100)/e)*100);
+    bars.push(exitAt-i);
+    nextOK=exitAt+1;
+  }
+  return {rets:rets, bars:bars};
+}
+
+/* ---------------- 利確後の延長を試す ---------------- */
+/* 利確に到達した後の扱いを5通り比べる。
+   none = 今の設定（そこで決済）
+   A    = 全部延長。損切りを建値に上げてさらに持つ
+   B    = 半分だけ利確。残りは建値ストップで延長
+   C    = 勢いよく抜けた日だけ延長（終値が利確価格をさらに超えていた場合）
+   D    = 利確到達後はトレーリング。毎日「終値 − 1ATR」まで損切りを引き上げる */
+const EXT_MODES = [
+  {id:"none", name:"利確で決済（今の設定）"},
+  {id:"A", name:"A 全部延長・損切りを建値へ"},
+  {id:"B", name:"B 半分利確・残りは建値ストップ"},
+  {id:"C", name:"C 勢いよく抜けた日だけ延長"},
+  {id:"D", name:"D 利確後はトレーリング（終値−1ATR）"},
+];
+
+/* 1トレードぶんを、延長方式ごとにシミュレートして%リターンを返す */
+function simTrade(c,S,i,H,tpM,slM,costPct,mode,ext,extraH){
+  const at=S.a[i]; if(!at) return null;
+  const e=c[i+1].o; if(!(e>0)) return null;
+  const tp=at*tpM, sl=at*slM;
+  const tpP=e+tp, slP=e-sl;
+  const lastBase=Math.min(i+1+H,c.length-1);
+  const cost=e*costPct/100;
+
+  let hitTP=-1, r=null, exitAt=lastBase;
+  for(let j=i+1;j<=lastBase;j++){
+    const lo = mode==="close" ? c[j].c : c[j].l;
+    const hi = mode==="close" ? c[j].c : c[j].h;
+    if(lo<=slP){ r=-sl; exitAt=j; break; }
+    if(hi>=tpP){ hitTP=j; break; }
+  }
+  if(r!=null) return {ret:((r-cost)/e)*100, bars:exitAt-i};      // 損切りで終了
+  if(hitTP<0){                                                    // 時間切れ
+    const x=c[lastBase].c;
+    return {ret:((x-e-cost)/e)*100, bars:lastBase-i};
+  }
+
+  /* ここから先は利確に到達した場合 */
+  if(ext==="none") return {ret:((tp-cost)/e)*100, bars:hitTP-i};
+
+  /* Cは「勢いよく抜けた」ときだけ延長。そうでなければ通常の利確 */
+  if(ext==="C" && !(c[hitTP].c > tpP)) return {ret:((tp-cost)/e)*100, bars:hitTP-i};
+
+  const until=Math.min(hitTP+extraH, c.length-1);
+  const half = (ext==="B") ? 0.5 : 0;          // Bは半分をここで確定
+  const lockedRet = half * tp;
+  let stop = (ext==="D") ? Math.max(e, c[hitTP].c - at) : e;   // 建値ストップ
+  let out=null, exAt=until;
+  for(let j=hitTP+1;j<=until;j++){
+    const lo = mode==="close" ? c[j].c : c[j].l;
+    if(lo<=stop){ out=stop-e; exAt=j; break; }
+    if(ext==="D"){
+      const ns=c[j].c-at;
+      if(ns>stop) stop=ns;                     // 終値が上がった分だけ引き上げる
+    }
+  }
+  if(out==null) out=c[until].c-e;
+  const rest = (1-half)*out;
+  return {ret:((lockedRet + rest - cost)/e)*100, bars:exAt-i};
+}
+
+function runExtension(rule, ext, group, extraH){
+  const mkt=(ST.mktName&&ST.sets[ST.mktName])?buildMarket(ST.sets[ST.mktName]):null;
+  const mm=mkt?ST.mktFilter:"none";
+  const rets=[], bars=[];
+  group.forEach(k=>{
+    const c=ST.sets[k], S=ST.built[k];
+    let nextOK=0;
+    for(let i=60;i<c.length-ST.H-extraH-3;i++){
+      if(i<nextOK) continue;
+      if(!ctxOK(rule.ctx,S,i)) continue;
+      if(!mktOK(mkt,mm,c[i].t)) continue;
+      let hit; try{ hit=rule.fn(c,S,i); }catch(e){ hit=false; }
+      if(!hit) continue;
+      const o=simTrade(c,S,i,ST.H,ST.tpM,ST.slM,ST.cost,ST.exitMode,ext,extraH);
+      if(!o) continue;
+      rets.push(o.ret); bars.push(o.bars);
+      nextOK=i+o.bars+1;
+    }
+  });
+  const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+  const m=avg(rets), b=avg(bars);
+  return {n:rets.length, mean:m, bars:b||ST.H,
+    wr: rets.length?rets.filter(x=>x>0).length/rets.length:0,
+    perDay: b>0?m/b:0, ci:bootCI(rets,99.5)};
+}
+
+function runExtensionTest(extraH){
+  const names=Object.keys(ST.built).filter(k=>!isIndex(k)).sort();
+  if(names.length<10) return {few:true};
+  const A=names.filter((_,i)=>i%2===0), B=names.filter((_,i)=>i%2===1);
+  const rule=RULES.filter(r=>r.id==="drop5_dn")[0]||BASE_DROP;
+  const rows=EXT_MODES.map(m=>({mode:m, A:runExtension(rule,m.id,A,extraH)}));
+  const baseRow=rows.filter(r=>r.mode.id==="none")[0];
+  const cand=rows.filter(r=>r.mode.id!=="none" && r.A.n>=80);
+  const best=cand.slice().sort((x,y)=>y.A.perDay-x.A.perDay)[0]||null;
+  const verifyBest = best ? runExtension(rule,best.mode.id,B,extraH) : null;
+  const verifyNone = runExtension(rule,"none",B,extraH);
+  return {rows:rows, best:best, verifyBest:verifyBest, verifyNone:verifyNone,
+    nA:A.length, nB:B.length, extraH:extraH, rule:rule};
+}
+
+const Z={95:1.96,99:2.576,99.5:2.807};
+function bootCI(arr,conf){
+  const n=arr.length;
+  if(n<15) return null;
+  const mean=arr.reduce((a,b)=>a+b,0)/n;
+  if(n>400){
+    const v=arr.reduce((a,b)=>a+(b-mean)*(b-mean),0)/(n-1);
+    const se=Math.sqrt(v/n), z=Z[conf]||1.96;
+    return {lo:mean-z*se, hi:mean+z*se};
+  }
+  let s=7;
+  const rnd=()=>{ s=(s*1103515245+12345)%2147483648; return s/2147483648; };
+  const N=800, ms=[];
+  for(let b=0;b<N;b++){ let t=0; for(let k=0;k<n;k++) t+=arr[Math.floor(rnd()*n)]; ms.push(t/n); }
+  ms.sort((a,b)=>a-b);
+  const lo = conf>=99.5?Math.round(N*0.0025):conf>=99?Math.round(N*0.005):Math.round(N*0.025);
+  return {lo:ms[lo], hi:ms[N-1-lo]};
+}
+/* ---------------- 二重フィルタ ---------------- */
+/* 土台は「その日3%以上下げたら翌日買い」。そこに2種類の条件を重ねる */
+const BASE_DROP = RULES.filter(r=>r.id==="a_drop")[0];
+
+/* 縦軸：1ヶ月以上の期間で見たトレンド */
+const TREND_F = [
+  {id:"any", name:"問わない", fn:(c,S,i)=>true},
+  {id:"up25", name:"25日線が上向き＆その上", fn:(c,S,i)=>
+    S.m25[i]!=null && S.m25[i-5]!=null && S.m25[i]>S.m25[i-5] && c[i].c>S.m25[i]},
+  {id:"up75", name:"75日線より上（長期上昇）", fn:(c,S,i)=>
+    S.m75[i]!=null && c[i].c>S.m75[i]},
+  {id:"dow", name:"ダウ理論で上昇", fn:(c,S,i)=>S.trend[i]==="上昇"},
+  {id:"down", name:"下降トレンド中", fn:(c,S,i)=>S.trend[i]==="下降"},
+];
+
+/* 横軸：その日の下げ方 */
+const SETUP_F = [
+  {id:"any", name:"問わない", fn:(c,S,i)=>true},
+  {id:"big", name:"5%以上の下げ", fn:(c,S,i)=>(c[i].c-c[i].o)/c[i].o < -0.05},
+  {id:"vol", name:"出来高が平常の1.5倍以上", fn:(c,S,i)=>{
+    if(!c[i].v) return false;
+    let s2=0,m=0;
+    for(let j=Math.max(0,i-20);j<i;j++){ s2+=c[j].v; m++; }
+    return m>0 && s2/m>0 && c[i].v >= (s2/m)*1.5;
+  }},
+  {id:"wick", name:"下ヒゲが実体の2倍以上", fn:(c,S,i)=>
+    loW(c[i]) >= bd(c[i])*2 && rng(c[i])>0},
+  {id:"rsi", name:"RSIが35未満", fn:(c,S,i)=>S.r[i]!=null && S.r[i]<35},
+  {id:"bb", name:"終値がボリンジャー下限割れ", fn:(c,S,i)=>
+    S.bbL[i]!=null && c[i].c < S.bbL[i]},
+];
+
+/* 土台＋2条件を1つのルールに合成する */
+function comboRule(tf, sf){
+  return {
+    id:"cmb_"+tf.id+"_"+sf.id, ctx:"any", dir:"long", grp:"絞り込み",
+    name:"3%下げ ＋ "+tf.name+" ＋ "+sf.name,
+    fn:(c,S,i)=> BASE_DROP.fn(c,S,i) && tf.fn(c,S,i) && sf.fn(c,S,i),
+  };
+}
+
+/* 銘柄を2群に分け、A群で最良を探してB群で確かめる。
+   30通り試すので、時期の分割だけでは偶然を除ききれないため */
+function runCombos(){
+  const names=Object.keys(ST.built).filter(k=>!isIndex(k)).sort();
+  if(names.length<10) return {few:true, n:names.length};
+  const A=names.filter((_,i)=>i%2===0), B=names.filter((_,i)=>i%2===1);
+  const mkt=(ST.mktName&&ST.sets[ST.mktName])?buildMarket(ST.sets[ST.mktName]):null;
+  const mm=mkt?ST.mktFilter:"none";
+
+  const run=(rule, group)=>{
+    const pooled=[], h1=[], h2=[];
+    group.forEach(k=>{
+      const c=ST.sets[k], mid=Math.floor(c.length/2);
+      const all=runRule(c,ST.built[k],rule,ST.H,ST.tpM,ST.slM,ST.cost,ST.exitMode,null,null,mkt,mm);
+      for(let i=0;i<all.length;i++) pooled.push(all[i]);
+      const a=runRule(c,ST.built[k],rule,ST.H,ST.tpM,ST.slM,ST.cost,ST.exitMode,60,mid,mkt,mm);
+      const b=runRule(c,ST.built[k],rule,ST.H,ST.tpM,ST.slM,ST.cost,ST.exitMode,mid,c.length,mkt,mm);
+      for(let i=0;i<a.length;i++) h1.push(a[i]);
+      for(let i=0;i<b.length;i++) h2.push(b[i]);
+    });
+    const avg=x=>x.length?x.reduce((p,q)=>p+q,0)/x.length:null;
+    return {n:pooled.length, mean:avg(pooled)||0,
+      wr: pooled.length?pooled.filter(x=>x>0).length/pooled.length:0,
+      m1:avg(h1), m2:avg(h2), ci:bootCI(pooled,99.5)};
+  };
+
+  const baseRule={id:"__b",ctx:"any",dir:"long",grp:"基準",name:"毎日買う",fn:()=>true};
+  const baseA=run(baseRule,A), baseB=run(baseRule,B);
+  const plainA=run(BASE_DROP,A), plainB=run(BASE_DROP,B);
+
+  const cells=[];
+  TREND_F.forEach(tf=>SETUP_F.forEach(sf=>{
+    const r=comboRule(tf,sf);
+    const a=run(r,A);
+    cells.push({tf:tf, sf:sf, rule:r, A:a,
+      excess: a.n>0 ? a.mean-baseA.mean : null,   /* 0件の組み合わせは比較できない */
+      stable: (a.m1!=null&&a.m2!=null)?(a.m1>0&&a.m2>0):null});
+  }));
+
+  /* A群で最も基準を上回ったものを選び、B群で確かめる */
+  const usable=cells.filter(c=>c.A.n>=60 && c.excess!=null && c.stable!==false);
+  const ranked=usable.slice().sort((x,y)=>y.excess-x.excess);
+  const best=ranked[0] || null;
+  /* 上位5つをB群で確かめる。1つだけだと「他も良いのでは」が分からないため */
+  const top5=ranked.slice(0,5).map(c=>{
+    const b=run(c.rule,B);
+    return {tf:c.tf, sf:c.sf, aEx:c.excess, aN:c.A.n,
+      bEx: b.n>0 ? b.mean-baseB.mean : null, bN:b.n, bWr:b.wr, bM1:b.m1, bM2:b.m2};
+  });
+  const maxN=Math.max.apply(null,cells.map(c=>c.A.n).concat([0]));
+  let verify=null;
+  if(best){
+    const b=run(best.rule,B);
+    verify={...b, excess:b.mean-baseB.mean};
+  }
+  /* 生存バイアスの代替検証。
+     20年のトータルリターンで銘柄を5分割し、最下位グループでも
+     そのグループ自身の基準を上回るかを見る。
+     最下位は「倒産はしなかったが限りなく近かった」銘柄群にあたる。 */
+  let quint=null;
+  if(best){
+    const perf=names.map(k=>{
+      const c=ST.sets[k];
+      return {k:k, ret:(c[c.length-1].c/c[0].c-1)*100};
+    }).sort((a,b)=>a.ret-b.ret);
+    const size=Math.floor(perf.length/5);
+    quint=[];
+    for(let g=0; g<5; g++){
+      const grp=perf.slice(g*size, g===4?perf.length:(g+1)*size);
+      const ks=grp.map(x=>x.k);
+      const rr=run(best.rule, ks), bb=run(baseRule, ks);
+      quint.push({
+        g:g, n:ks.length,
+        retLo:grp[0].ret, retHi:grp[grp.length-1].ret,
+        retMid:grp[Math.floor(grp.length/2)].ret,
+        trades:rr.n, mean:rr.mean, wr:rr.wr, base:bb.mean,
+        excess: rr.n>0 ? rr.mean-bb.mean : null,
+      });
+    }
+  }
+  return {cells:cells, best:best, verify:verify, maxN:maxN, quint:quint, top5:top5,
+    baseA:baseA, baseB:baseB, plainA:plainA, plainB:plainB,
+    nA:A.length, nB:B.length, tried:cells.length};
+}
+
+/* 利確・損切り幅の総当たり。A群で探してB群で確かめる。
+   1度に1銘柄しか持てないので、評価軸は「1日あたりいくら稼ぐか」にする */
+const TPS_G=[1.0,1.5,2.0,2.5,3.0];
+const SLS_G=[0.5,0.75,1.0,1.5];
+function runRatioGrid(rule){
+  const names=Object.keys(ST.built).filter(k=>!isIndex(k)).sort();
+  if(names.length<10) return {few:true};
+  const A=names.filter((_,i)=>i%2===0), B=names.filter((_,i)=>i%2===1);
+  const mkt=(ST.mktName&&ST.sets[ST.mktName])?buildMarket(ST.sets[ST.mktName]):null;
+  const mm=mkt?ST.mktFilter:"none";
+  const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+
+  const run=(tpM,slM,group,from,to)=>{
+    const rets=[],bars=[];
+    group.forEach(k=>{
+      const c=ST.sets[k];
+      const o=runRuleBars(c,ST.built[k],rule,ST.H,tpM,slM,ST.cost,ST.exitMode,from,to,mkt,mm);
+      for(let i=0;i<o.rets.length;i++){ rets.push(o.rets[i]); bars.push(o.bars[i]); }
+    });
+    const m=avg(rets), b=avg(bars);
+    return {n:rets.length, mean:m||0, bars:b||ST.H,
+      wr: rets.length?rets.filter(x=>x>0).length/rets.length:0,
+      perDay: (m!=null&&b>0)? m/b : 0};
+  };
+
+  const cells=[];
+  TPS_G.forEach(t=>SLS_G.forEach(sl=>{
+    cells.push({tp:t, sl:sl, A:run(t,sl,A)});
+  }));
+  const usable=cells.filter(c=>c.A.n>=80);
+  const best=usable.slice().sort((x,y)=>y.A.perDay-x.A.perDay)[0]||null;
+  let verify=null, cur=null;
+  if(best) verify=run(best.tp,best.sl,B);
+  cur=run(ST.tpM,ST.slM,B);
+  return {cells:cells, best:best, verify:verify, cur:cur,
+    curTp:ST.tpM, curSl:ST.slM, nA:A.length, nB:B.length, tried:cells.length};
+}
+
+/* ---------------- 銘柄ランキングに持続性があるか ---------------- */
+/* 前半の成績が良かった銘柄は、後半も良いのか。
+   相関がゼロなら、順位は偶然でしかない＝ランキングは使えない */
+function persistence(halves){
+  const n=halves.length;
+  if(n<20) return null;
+  const x=halves.map(h=>h.m1), y=halves.map(h=>h.m2);
+  const mx=x.reduce((a,b)=>a+b,0)/n, my=y.reduce((a,b)=>a+b,0)/n;
+  let sxy=0,sxx=0,syy=0;
+  for(let i=0;i<n;i++){ const a=x[i]-mx,b=y[i]-my; sxy+=a*b; sxx+=a*a; syy+=b*b; }
+  const r=(sxx>0&&syy>0)?sxy/Math.sqrt(sxx*syy):0;
+  const rank=arr=>{ const idx=arr.map((v,i)=>[v,i]).sort((a,b)=>a[0]-b[0]);
+    const rk=new Array(arr.length); idx.forEach((p,i)=>rk[p[1]]=i+1); return rk; };
+  const rx=rank(x), ry=rank(y), mrx=(n+1)/2;
+  let txy=0,txx=0,tyy=0;
+  for(let i=0;i<n;i++){ const a=rx[i]-mrx,b=ry[i]-mrx; txy+=a*b; txx+=a*a; tyy+=b*b; }
+  const rs=(txx>0&&tyy>0)?txy/Math.sqrt(txx*tyy):0;
+  const sorted=halves.slice().sort((a,b)=>b.m1-a.m1);
+  const cut=Math.max(3,Math.floor(n*0.2));
+  const top=sorted.slice(0,cut), bot=sorted.slice(-cut);
+  const avg=a=>a.reduce((p,q)=>p+q,0)/a.length;
+  const all2=avg(y);
+  return {n:n, pearson:r, spearman:rs, topN:cut,
+    topFirst:avg(top.map(h=>h.m1)), topSecond:avg(top.map(h=>h.m2)),
+    botFirst:avg(bot.map(h=>h.m1)), botSecond:avg(bot.map(h=>h.m2)),
+    allSecond:all2, edge:avg(top.map(h=>h.m2))-all2};
+}
+
+const tickOf=p=> p<=3000?1 : p<=5000?5 : p<=30000?10 : p<=50000?50 : 100;
+function med(a){ if(!a.length) return 0; const s=a.slice().sort((x,y)=>x-y); return s[Math.floor(s.length/2)]; }
+function screenStock(c,S,budget,unit){
+  unit = unit || 100;
+  const i=c.length-1, px=c[i].c;
+  const at=S.a[i]!=null?S.a[i]:S.atrAvg, atrPct=at/px*100, tick=tickOf(px);
+  const costShare = atrPct>0 ? (tick/px*100)/atrPct*100 : 999;
+  const hasV=c.some(k=>k.v>0);
+  const turn = hasV ? med(c.slice(-60).map(k=>k.v*k.c)) : null;
+  const vT = hasV ? med(c.slice(-20).map(k=>k.v))/(med(c.slice(-80,-20).map(k=>k.v))||1) : null;
+  const flags=[];
+  if(turn!=null && turn<1e8) flags.push("売買代金が少ない");
+  if(costShare>20) flags.push("呼値が大きい");
+  if(vT!=null && vT<0.6) flags.push("出来高が細い");
+  if(px*unit>budget) flags.push("予算超え");
+  return {px:px,atrPct:atrPct,tick:tick,costShare:costShare,turn:turn,vT:vT,flags:flags,atr:at};
+}
+
+/* ---------------- 記録の集計 ---------------- */
+const yen=n=>(n>=0?"+":"−")+Math.abs(Math.round(n)).toLocaleString();
+const pctS=n=>(n*100).toFixed(1)+"%";
+function todayStr(){ const d=new Date(), p=x=>String(x).padStart(2,"0");
+  return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+"T"+p(d.getHours())+":"+p(d.getMinutes()); }
+function summarize(tr,start){
+  const s=tr.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const w=s.filter(t=>t.pnl>0), l=s.filter(t=>t.pnl<0);
+  const sum=a=>a.reduce((x,y)=>x+y,0);
+  const gp=sum(w.map(t=>t.pnl)), gl=-sum(l.map(t=>t.pnl));
+  let eq=start,peak=start,dd=0,cw=0,cl2=0,mw=0,ml=0;
+  const curve=[{eq:eq}];
+  s.forEach(t=>{
+    eq+=t.pnl; curve.push({eq:eq});
+    peak=Math.max(peak,eq); dd=Math.max(dd,peak-eq);
+    if(t.pnl>0){cw++;cl2=0;mw=Math.max(mw,cw);}
+    else if(t.pnl<0){cl2++;cw=0;ml=Math.max(ml,cl2);}
+  });
+  const grp=key=>{
+    const m={};
+    s.forEach(t=>{
+      const k=String(t[key]==null?"未設定":t[key])||"未設定";
+      if(!m[k]) m[k]={k:k,n:0,pnl:0,w:0};
+      m[k].n++; m[k].pnl+=t.pnl; if(t.pnl>0) m[k].w++;
+    });
+    return Object.keys(m).map(k=>m[k]).sort((a,b)=>b.pnl-a.pnl);
+  };
+  return {list:s,n:s.length,total:sum(s.map(t=>t.pnl)),eq:eq,curve:curve,
+    winN:w.length,lossN:l.length,winRate:s.length?w.length/s.length:0,
+    avgWin:w.length?gp/w.length:0, avgLoss:l.length?gl/l.length:0,
+    pf: gl>0?gp/gl:null, exp: s.length?sum(s.map(t=>t.pnl))/s.length:0,
+    maxDDyen:dd, maxDD: peak>0?dd/peak:0, maxWin:mw, maxLoss:ml,
+    bySymbol:grp("symbol"), byRule:grp("rule"), byMood:grp("mood"), byExit:grp("exitReason")};
+}
+
+/* ============================================================
+   画面
+   ============================================================ */
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const ST = {
+  tab:"sum", sets:{}, built:{}, res:null, msg:"", running:false,
+  H:8, tpM:1.5, slM:1.0, cost:0.1, exitMode:"intraday", budget:100000, riskPct:1, longOnly:true, mktFilter:"none", mktName:"", combo:null, comboRun:false, grid:null, gridRun:false, qtyOverride:{}, ext:null, extRun:false, extraH:8, onlyFired:true, useRule:"best",
+  trades:[], start:100000, editId:null, jTab:"symbol",
+};
+
+function load(){
+  try{
+    const idx = LS.get("kn:index");
+    if(idx){
+      JSON.parse(idx).forEach(nm=>{
+        const raw = LS.get("kn:d:"+nm);
+        if(!raw) return;
+        ST.sets[nm] = raw.split("\n").filter(Boolean).map(line=>{
+          const p=line.split(",");
+          return {t:p[0],o:+p[1],h:+p[2],l:+p[3],c:+p[4],v:+p[5]||0};
+        });
+      });
+    }
+  }catch(e){}
+  try{
+    const j = LS.get("kn:journal");
+    if(j){ const d=JSON.parse(j);
+      if(Array.isArray(d.trades)) ST.trades=d.trades;
+      if(isFinite(d.start)) ST.start=d.start;
+      if(isFinite(d.H)) { ST.H=d.H; ST.tpM=d.tpM; ST.slM=d.slM; ST.cost=d.cost;
+        ST.riskPct=d.riskPct; ST.exitMode=d.exitMode||"intraday";
+        if(typeof d.longOnly==="boolean") ST.longOnly=d.longOnly;
+        if(d.mktFilter) ST.mktFilter=d.mktFilter;
+        if(d.mktName) ST.mktName=d.mktName; }
+    }
+  }catch(e){}
+  ST.budget = ST.start;
+}
+function saveJournal(){
+  LS.set("kn:journal", JSON.stringify({trades:ST.trades,start:ST.start,H:ST.H,tpM:ST.tpM,
+    slM:ST.slM,cost:ST.cost,riskPct:ST.riskPct,exitMode:ST.exitMode,longOnly:ST.longOnly,mktFilter:ST.mktFilter,mktName:ST.mktName}));
+}
+function saveSets(){
+  /* 記録を先に保存する。容量が足りなくても記録は必ず残る */
+  saveJournal();
+  const names = Object.keys(ST.sets);
+  LS.set("kn:index", JSON.stringify(names));
+  /* 入るだけ保存する。入らなければ本数を減らして再挑戦し、最後まで駄目なら諦める */
+  const steps = [999999, 3000, 1500, 750, 0];
+  let saved = 0, bars = 0;
+  for(let s=0;s<steps.length;s++){
+    names.forEach(nm=>LS.del("kn:d:"+nm));
+    if(steps[s]===0) break;
+    let ok = true, cnt = 0;
+    for(const nm of names){
+      const rows = ST.sets[nm].slice(-steps[s]);
+      const body = rows.map(r=>[r.t,r.o,r.h,r.l,r.c,r.v].join(",")).join("\n");
+      if(!LS.set("kn:d:"+nm, body)){ ok=false; break; }
+      cnt++;
+    }
+    if(ok){ saved = cnt; bars = Math.min(steps[s], 999998); break; }
+  }
+  if(!saved){
+    LS.set("kn:index","[]");
+    ST.msg = "株価データは保存できませんでした（容量の上限）。分析はこのまま続けられます。記録は保存されています。次に開いたときはCSVを入れ直してください。";
+  } else if(bars < 999998){
+    const need = names.some(nm=>ST.sets[nm].length > bars);
+    if(need) ST.msg = "株価データは直近 "+bars.toLocaleString()+" 本まで保存しました（容量の上限）。分析には読み込んだ全期間を使っています。次に開いたとき、それより古い期間が必要ならCSVを入れ直してください。";
+  }
+}
+const isIndex = k => k.charAt(0)==="_";
+function rebuild(){
+  ST.built={};
+  Object.keys(ST.sets).forEach(k=>{
+    if(ST.sets[k].length<120) return;
+    try{ ST.built[k]=buildState(ST.sets[k]); }catch(e){}
+  });
+  /* 指数が読み込まれていれば、既定でそれを使う */
+  const idx=Object.keys(ST.sets).filter(isIndex);
+  if(idx.length && !idx.includes(ST.mktName)) ST.mktName=idx[0];
+  if(!idx.length) ST.mktName="";
+}
+
+/* --- 本計算 --- */
+function runAll(){
+  const names=Object.keys(ST.built).filter(k=>!isIndex(k));
+  if(!names.length){ ST.res={none:true}; return; }
+  const mkt = (ST.mktName && ST.sets[ST.mktName]) ? buildMarket(ST.sets[ST.mktName]) : null;
+  const mm = mkt ? ST.mktFilter : "none";
+  const scr={};
+  const unit = ST.exitMode==="close" ? 1 : 100;   /* S株なら1株単位で判定する */
+  names.forEach(k=>{ scr[k]=screenStock(ST.sets[k],ST.built[k],ST.budget,unit); });
+  const pass=names.filter(k=>scr[k].flags.length===0);
+  const useNames = pass.length>=3 ? pass : names;
+  const conf=99.5;
+  const stat = RULES.concat([BASE]).map(rule=>{
+    const pooled=[], firstH=[], secondH=[], perStockHalves=[]; let pos=0, st=0;
+    useNames.forEach(k=>{
+      const c=ST.sets[k], mid=Math.floor(c.length/2);
+      const rets=runRule(c,ST.built[k],rule,ST.H,ST.tpM,ST.slM,ST.cost,ST.exitMode,null,null,mkt,mm);
+      if(rets.length<5) return;
+      st++;
+      const m=rets.reduce((a,b)=>a+b,0)/rets.length;
+      if(m>0) pos++;
+      for(let i=0;i<rets.length;i++) pooled.push(rets[i]);
+      /* 期間を前半と後半に割って、成績が安定しているか見る */
+      const r1=runRule(c,ST.built[k],rule,ST.H,ST.tpM,ST.slM,ST.cost,ST.exitMode,60,mid,mkt,mm);
+      const r2=runRule(c,ST.built[k],rule,ST.H,ST.tpM,ST.slM,ST.cost,ST.exitMode,mid,c.length,mkt,mm);
+      for(let i=0;i<r1.length;i++) firstH.push(r1[i]);
+      for(let i=0;i<r2.length;i++) secondH.push(r2[i]);
+      /* 銘柄ごとの前半・後半を残す。ランキングに持続性があるかを見るため */
+      if(r1.length>=8 && r2.length>=8){
+        perStockHalves.push({k:k,
+          m1:r1.reduce((a,b)=>a+b,0)/r1.length, n1:r1.length,
+          m2:r2.reduce((a,b)=>a+b,0)/r2.length, n2:r2.length});
+      }
+    });
+    const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+    const mean = pooled.length?pooled.reduce((a,b)=>a+b,0)/pooled.length:0;
+    const wr = pooled.length?pooled.filter(x=>x>0).length/pooled.length:0;
+    const m1=avg(firstH), m2=avg(secondH);
+    return {rule:rule,n:pooled.length,mean:mean,wr:wr,pos:pos,stocks:st,ci:bootCI(pooled,conf),
+      m1:m1,m2:m2,n1:firstH.length,n2:secondH.length,halves:perStockHalves,
+      stable: (m1!=null&&m2!=null&&firstH.length>=15&&secondH.length>=15) ? (m1>0&&m2>0) : null};
+  });
+  const base = stat.filter(s=>s.rule.id==="__base")[0];
+  const rules = stat.filter(s=>s.rule.id!=="__base").map(s=>{
+    const core = !!(s.ci && s.ci.lo>0 && s.stocks>=3 && s.pos>s.stocks/2 && (!base || s.ci.lo>base.mean));
+    s.passed = core && s.stable!==false && !(ST.longOnly && s.rule.dir==="short");
+    s.blockedByShort = core && s.stable!==false && ST.longOnly && s.rule.dir==="short";
+    s.blockedByStable = core && s.stable===false;
+    return s;
+  }).sort((a,b)=>b.mean-a.mean);
+  const passedRules = rules.filter(r=>r.passed);
+  const perStock = names.map(k=>{
+    const c=ST.sets[k], S=ST.built[k], i=c.length-1, sc=scr[k];
+    const todayOK = mktOK(mkt, mm, c[i].t);
+    const fired = (todayOK?passedRules:[]).filter(pr=>{
+      if(!ctxOK(pr.rule.ctx,S,i)) return false;
+      try{ return pr.rule.fn(c,S,i); }catch(e){ return false; }
+    }).map(pr=>{
+      const at=sc.atr, tick=sc.tick, rd=p=>Math.round(p/tick)*tick;
+      const long = pr.rule.dir==="long";
+      const stop = rd(long ? sc.px-at*ST.slM : sc.px+at*ST.slM);
+      const targ = rd(long ? sc.px+at*ST.tpM : sc.px-at*ST.tpM);
+      const riskPer = Math.abs(sc.px-stop);
+      const unit = ST.exitMode==="close" ? 1 : 100;
+      const byRisk = riskPer>0 ? Math.floor((ST.start*ST.riskPct/100)/riskPer/unit)*unit : 0;
+      const byCash = Math.floor(ST.start/sc.px/unit)*unit;
+      const shares = Math.max(Math.min(byRisk,byCash),0);
+      return Object.assign({},pr,{stop:stop,targ:targ,shares:shares,
+        maxLoss:Math.round(shares*riskPer), cost:Math.round(shares*sc.px)});
+    });
+    return {k:k,sc:sc,trend:S.trend[i],strength:S.strength[i],pressure:S.pressure[i],
+      px:sc.px, ok:sc.flags.length===0,
+      fired:fired.slice().sort((a,b)=>b.mean-a.mean), todayOK:todayOK};
+  }).sort((a,b)=>{
+    const fa=a.fired.length?a.fired[0].mean:-999, fb=b.fired.length?b.fired[0].mean:-999;
+    if(fa!==fb) return fb-fa;                       // 成績の良いシグナル順
+    return (b.ok?1:0)-(a.ok?1:0);                   // 次に、銘柄条件を満たすもの
+  });
+  const mkState = mkt && mkt[ST.sets[names[0]][ST.sets[names[0]].length-1].t];
+  ST.res={mkt:!!mkt, mkName:ST.mktName, mkMode:mm, mkState:mkState,
+    rules:rules,base:base,passedRules:passedRules,perStock:perStock,
+    useNames:useNames, fallback:pass.length<3, passN:pass.length, totalN:names.length, conf:conf};
+}
+
+/* --- 描画 --- */
+function render(){
+  document.getElementById("tabs").innerHTML =
+    [["sum","まとめ"],["filter","絞り込み"],["data","データ"],["journal","記録"]].map(t=>
+      '<button class="tb'+(ST.tab===t[0]?" on":"")+'" data-tab="'+t[0]+'">'+t[1]+'</button>').join("");
+  document.getElementById("msg").innerHTML = ST.msg ? '<div class="msg">'+esc(ST.msg)+'</div>' : "";
+  const v=document.getElementById("view");
+  v.innerHTML = ST.tab==="data" ? viewData() : ST.tab==="journal" ? viewJournal() : ST.tab==="filter" ? viewFilter() : viewSum();
+  wire();
+}
+function viewData(){
+  const names=Object.keys(ST.sets);
+  return '<div class="drop" id="drop">'
+    + '<div style="font-size:15px;font-weight:700;margin-bottom:5px">CSVをここにドロップ、またはクリックして選択</div>'
+    + '<div style="color:var(--muted);font-size:12.5px">複数まとめて選べます。文字コードは自動判別します。</div>'
+    + '<input type="file" id="f1" accept=".csv,.txt,.tsv" multiple class="hide"></div>'
+    + '<div class="sec" style="margin-top:20px"><h2>読み込み済み '+names.length+' 件</h2>'
+    + (names.length===0 ? '<p class="empty">まだありません。</p>'
+      : '<p class="note" style="margin-top:0">'+esc(names.slice(0,60).join("、"))+(names.length>60?" ほか":"")+'</p>'
+        + '<button id="clear" style="margin-top:10px">全部消してやり直す</button>')
+    + '</div>';
+}
+function viewSum(){
+  if(!Object.keys(ST.built).length)
+    return '<p class="empty">「データ」タブでCSVを読み込んでください（1銘柄あたり120行以上）。</p>';
+  let h = '<div class="sec"><h2>条件</h2><div class="grid"><div>'
+    + numRow("何本先まで持つか","H",ST.H,"本","1")
+    + numRow("利確幅（ATRの倍率）","tpM",ST.tpM,"倍","0.1")
+    + numRow("損切り幅（ATRの倍率）","slM",ST.slM,"倍","0.1")
+    + numRow("往復コスト","cost",ST.cost,"％","0.05")
+    + '</div><div>'
+    + numRow("資金","start",ST.start,"円","10000")
+    + numRow("1回で失ってよい割合","riskPct",ST.riskPct,"％","0.5")
+    + (function(){
+        const idx=Object.keys(ST.sets).filter(isIndex);
+        if(!idx.length) return '<div class="row"><span class="k">地合いフィルタ</span>'
+          + '<span class="v" style="color:var(--muted)">指数データ未読込</span></div>';
+        return '<div class="row" style="flex-direction:column;align-items:stretch;gap:4px">'
+          + '<span class="k">地合いフィルタ（'+esc(ST.mktName)+'）</span><select id="mktFilter">'
+          + [["none","使わない（全日エントリー）"],
+             ["above25","指数が25日線より上の日だけ"],
+             ["notdown","指数が下降トレンドでない日だけ"],
+             ["both","上の両方を満たす日だけ"]]
+            .map(o=>'<option value="'+o[0]+'"'+(ST.mktFilter===o[0]?" selected":"")+'>'+o[1]+'</option>').join("")
+          + '</select></div>';
+      })()
+    + '<div class="row"><span class="k">信用取引は使わない（買いのみ）</span><span class="v">'
+    + '<input type="checkbox" id="longOnly"'+(ST.longOnly?" checked":"")+'></span></div>'
+    + '<div class="row" style="flex-direction:column;align-items:stretch;gap:4px">'
+    + '<span class="k">決済のしかた</span><select id="exitMode">'
+    + '<option value="intraday"'+(ST.exitMode==="intraday"?" selected":"")+'>100株以上・逆指値を置く</option>'
+    + '<option value="close"'+(ST.exitMode==="close"?" selected":"")+'>S株・1株から（終値で判定）</option>'
+    + '</select></div></div></div>'
+    + '<button class="primary" id="run" style="margin-top:12px">'+(ST.running?"計算中…":"全部まとめて計算する")+'</button>'
+    + '<p class="note">'+Object.keys(ST.built).length+' 銘柄 × '+RULES.length+' ルールを計算します。数十秒かかることがあります。</p></div>';
+  const R=ST.res;
+  if(!R) return h;
+  if(R.none) return h+'<p class="empty">計算できるデータがありません。</p>';
+  if(R.mkt){
+    const ms=R.mkState||{};
+    const bad = R.mkMode!=="none" && !mktOK({x:ms}, R.mkMode, "x");
+    h += '<div class="msg" style="border-left-color:'+(bad?"var(--up)":"var(--brass)")+'">'
+      + '<b>今日の地合い（'+esc(R.mkName)+'）</b>　'
+      + 'トレンド '+esc(ms.trend||"—")+' ／ 25日線の'+(ms.above25===false?"下":ms.above25===true?"上":"—")
+      + (R.mkMode==="none" ? '\nフィルタは使っていません。全ての日でエントリーする前提で計算しています。'
+         : bad ? '\n地合いの条件を満たしていないため、今日は全銘柄が対象外です。'
+               : '\n地合いの条件は満たしています。')
+      + '</div>';
+  }
+  h += '<div class="verdict"><div class="big">'
+    + (R.passedRules.length>0 ? '<span class="ok">使えるルールが '+R.passedRules.length+' 個</span>'
+       : '<span class="amber">使えるルールは無し</span>')
+    + '</div><p style="margin:8px 0 0;font-size:13.5px">'
+    + R.totalN+' 銘柄のうち条件を満たしたのは '+R.passN+' 銘柄。検証に使ったのは '+R.useNames.length+' 銘柄です。'
+    + (R.base ? '　何も考えず毎日買った場合の平均は '+(R.base.mean>=0?"+":"")+R.base.mean.toFixed(3)+'％で、合格にはこれを上回ることを条件にしています。' : "")
+    + (R.fallback ? '<span class="amber">　条件を満たす銘柄が3つ未満だったため、全銘柄で計算しています。</span>' : "")
+    + '</p><p class="note"><b>「基準超過」の列を見てください。</b>これが条件を見ずに毎日買った場合を、どれだけ上回ったかです。'
+    + '倒産して消えた銘柄がデータに入っていない影響は基準にも同じようにかかるので、<b>引き算した後のほうが実態に近い数字</b>になります。'
+    + '1回あたりの数値が大きくても、ここが小さければ条件を絞った意味はほとんどありません。'
+    + '</p><p class="note">'+RULES.length+'個のルールを同時に試しているので、判定は'+R.conf+'％という厳しい基準にしてあります。'
+    + 'さらに、期間を前半と後半に割って<b>どちらでもプラスだったものだけ</b>を合格にしています。'
+    + '片方だけで勝っているルールは、その時期の相場に合っていただけの可能性が高いためです。'
+    + (ST.longOnly?'現物取引の設定なので、売りのルールは除外しています。':'')+'</p></div>';
+
+  /* 今日、同じルールが何銘柄で出たかを数える */
+  const fireCount={};
+  R.perStock.forEach(s=>s.fired.forEach(f=>{ fireCount[f.rule.id]=(fireCount[f.rule.id]||0)+1; }));
+  const crowded = Object.keys(fireCount).filter(id=>fireCount[id]>=5);
+  const fired=R.perStock.filter(x=>x.fired.length);
+  const waiting=R.perStock.filter(x=>!x.fired.length && x.ok);
+  const excluded=R.perStock.filter(x=>!x.fired.length && !x.ok);
+  h += '<div class="sec"><h2>銘柄ごとの今の状態</h2>'
+    + '<div class="chips">'
+    + '<button class="chip'+(ST.onlyFired?" on":"")+'" data-only="1">シグナルのみ '+fired.length+'</button>'
+    + '<button class="chip'+(ST.onlyFired?"":" on")+'" data-only="0">全部 '+R.perStock.length+'</button>'
+    + '<span style="font-size:12.5px;color:var(--muted);align-self:center">　'
+    + '待機 '+waiting.length+' ／ 対象外 '+excluded.length+'</span></div>';
+  if(ST.onlyFired && !fired.length){
+    h += '<p class="empty">今日は買いのシグナルが出ている銘柄がありません。何もしない日です。</p>';
+  }
+  if(crowded.length){
+    const worst = crowded.map(id=>{
+      const nm = RULES.filter(r=>r.id===id)[0];
+      return (nm?nm.name:id)+"："+fireCount[id]+"銘柄";
+    }).join(" / ");
+    h += '<div class="msg" style="border-left-color:var(--up)"><b>同じルールが多くの銘柄で同時に出ています。</b>\n'
+      + esc(worst) + '\n'
+      + 'これは別々のチャンスではなく、市場全体が同じ方向に動いているだけの可能性があります。'
+      + '複数まとめて入ると分散にならず、1つの賭けを何倍にもすることになります。'
+      + '入るなら1銘柄だけにしてください。</div>';
+  }
+  h += '<p class="note" style="margin-top:0">トレンドはダウ理論で判定しています。強度が '+MIN_STRENGTH+' 未満の銘柄は、トレンドを前提とするルールの対象外です。</p>';
+  (ST.onlyFired ? fired : R.perStock).forEach(s=>{
+    const col = s.fired.length ? "var(--green)" : s.ok ? "var(--rule)" : "var(--panel2)";
+    const tc = s.trend==="上昇"?"var(--up)":s.trend==="下降"?"var(--down)":"var(--muted)";
+    h += '<div class="stock" style="border-left-color:'+col+'"><div class="hd">'
+      + '<span class="nm">'+esc(s.k)+'</span>'
+      + '<span style="color:'+tc+';font-weight:700">'+s.trend+'</span>'
+      + '<span style="font-size:12px;color:var(--muted)">強度 <span class="bar"><i style="width:'+s.strength+'%"></i></span> '+s.strength+'</span>'
+      + '<span style="font-size:12px;color:'+(s.pressure>60?"var(--down)":s.pressure<40?"var(--up)":"var(--muted)")+'">'
+      + (s.pressure>60?"売り圧力が強い":s.pressure<40?"買い圧力が強い":"圧力は拮抗")+'</span>'
+      + '<span style="margin-left:auto;font-size:12px;color:var(--muted)">'+s.px.toFixed(s.px<100?1:0)+' 円'
+      + (!s.ok?'<span class="warn">　'+esc(s.sc.flags.join("・"))+'</span>':"")+'</span></div>';
+    if(!s.fired.length){
+      h += '<p class="note" style="margin-top:4px">'
+        + (R.passedRules.length===0?"合格したルールがありません。":s.ok?"今日は当てはまるルールがありません。":"銘柄の条件を満たしていないため対象外です。")
+        + '</p>';
+    } else s.fired.forEach((f,idx)=>{
+      const dc = f.rule.dir==="long"?"var(--up)":"var(--down)";
+      const isTop = (idx===0 && s.fired.length>1);
+      h += '<div class="card" style="border-left-color:'+dc+(isTop?';border-left-width:6px':'')+'">'
+        + '<div style="font-weight:700;font-size:13.5px"><span style="color:'+dc+'">'
+        + (f.rule.dir==="long"?"買い":"売り")+'</span>　'+esc(f.rule.name)
+        + (isTop?'<span class="ok" style="font-size:11.5px">　← この銘柄で成績が最も良いルール</span>':'')
+        + '<span style="color:var(--muted);font-weight:400;font-size:12px">　（'+f.rule.grp+'）</span></div>'
+        + row("過去の成績","勝率 "+pctS(f.wr)+"・1回あたり "+(f.mean>=0?"+":"")+f.mean.toFixed(3)+"％（"+f.n+"回・"+f.pos+"/"+f.stocks+"銘柄）")
+        + row("入る","翌営業日の寄付を成行")
+        + row("損切り / 利確",'<b class="warn">'+f.stop.toFixed(0)+'</b> / <b class="ok">'+f.targ.toFixed(0)+'</b> 円')
+        + (function(){
+            const key=s.k+"|"+f.rule.id;
+            const ov=ST.qtyOverride[key];
+            const q=(ov!=null&&ov>0)?ov:f.shares;
+            if(f.shares===0 && ov==null)
+              return row("株数", '<span class="warn">資金が足りないため見送り</span>');
+            const riskPer=Math.abs(s.px-f.stop);
+            const loss=Math.round(q*riskPer), cost=Math.round(q*s.px);
+            const pc=ST.start>0?loss/ST.start*100:0;
+            return row("株数",
+              '<input type="number" min="0" step="1" value="'+q+'" data-qty="'+esc(key)+'" style="width:84px"> 株'
+              + '　<span class="k">約 '+cost.toLocaleString()+' 円・損失の上限 </span>'
+              + '<b class="'+(pc>1.2?"warn":"ok")+'">'+loss.toLocaleString()+' 円（'+pc.toFixed(2)+'％）</b>'
+              + (ov!=null?'　<button class="link" data-qtyreset="'+esc(key)+'">推奨に戻す</button>':''));
+          })()
+        + '</div>';
+    });
+    h += '</div>';
+  });
+  h += '</div>';
+
+  h += '<div class="sec"><h2>ルール別の検証結果</h2><div class="scroll"><table><thead><tr>'
+    + '<th>ルール</th><th>判定</th><th>回数</th><th>勝率</th><th>1回あたり</th><th>基準超過</th><th>前半</th><th>後半</th><th>誤差の範囲</th><th>銘柄</th></tr></thead><tbody>';
+  if(R.base) h += '<tr style="background:var(--panel2)"><td style="white-space:normal;min-width:200px;color:var(--brass)">'
+    + esc(R.base.rule.name)+'</td><td style="color:var(--brass)">基準</td><td>'+R.base.n+'</td><td>'+pctS(R.base.wr)
+    + '</td><td style="color:var(--brass);font-weight:700">'+(R.base.mean>=0?"+":"")+R.base.mean.toFixed(3)+'％</td>'
+    + '<td colspan="3" style="color:var(--muted)">—</td>'
+    + '<td style="color:var(--muted)">'+(R.base.ci?R.base.ci.lo.toFixed(3)+"〜"+R.base.ci.hi.toFixed(3):"—")+'</td><td>—</td></tr>';
+  R.rules.forEach(r=>{
+    h += '<tr><td style="white-space:normal;min-width:200px">'+esc(r.rule.name)+'</td>'
+      + '<td style="font-weight:700;color:'+(r.passed?"var(--green)":r.blockedByStable?"var(--up)":"var(--muted)")+'">'
+      +(r.passed?"合格":r.blockedByShort?"売り不可":r.blockedByStable?"期間で不安定":"不合格")+'</td>'
+      + '<td>'+r.n+'</td><td>'+(r.n?pctS(r.wr):"—")+'</td>'
+      + '<td style="color:'+(r.mean>0?"var(--green)":"var(--up)")+';font-weight:700">'+(r.mean>=0?"+":"")+r.mean.toFixed(3)+'％</td>'
+      + (function(){ var ex = R.base ? r.mean - R.base.mean : null;
+           return '<td style="font-weight:700;color:'+(ex==null?"var(--muted)":ex>0.15?"var(--green)":ex>0?"var(--brass)":"var(--up)")+'">'
+             + (ex==null?"—":(ex>=0?"+":"")+ex.toFixed(3)+"％")+'</td>'; })()
+      + '<td style="color:'+(r.m1==null?"var(--muted)":r.m1>0?"var(--green)":"var(--up)")+'">'+(r.m1==null?"—":(r.m1>=0?"+":"")+r.m1.toFixed(2))+'</td>'
+      + '<td style="color:'+(r.m2==null?"var(--muted)":r.m2>0?"var(--green)":"var(--up)")+'">'+(r.m2==null?"—":(r.m2>=0?"+":"")+r.m2.toFixed(2))+'</td>'
+      + '<td style="color:var(--muted)">'+(r.ci?r.ci.lo.toFixed(3)+"〜"+r.ci.hi.toFixed(3):"回数不足")+'</td>'
+      + '<td>'+(r.stocks?r.pos+"/"+r.stocks:"—")+'</td></tr>';
+  });
+  /* --- 銘柄ランキングの持続性 --- */
+  {
+    /* 銘柄ごとの標本が最も多い合格ルールを使う。回数の少ないルールでは判定できないため */
+    const pool = (R.passedRules.length ? R.passedRules : R.rules).slice()
+      .sort((a,b)=>((b.halves||[]).length)-((a.halves||[]).length));
+    const best = pool[0];
+    const p = best && best.halves ? persistence(best.halves) : null;
+    if(p){
+      const weak = Math.abs(p.spearman)<0.15;
+      h += '</tbody></table></div>';
+      h += '<div class="sec"><h2>銘柄ランキングは使えるか</h2>'
+        + '<p class="note" style="margin-top:0">「'+esc(best.rule.name)+'」について、'
+        + '前半で成績が良かった銘柄が後半も良かったかを調べました。対象 '+p.n+' 銘柄。</p>'
+        + '<div class="verdict"><div class="big">'
+        + (weak ? '<span class="warn">ランキングは使えない</span>'
+                : '<span class="ok">持続性あり</span>')
+        + '<span style="font-size:16px;font-weight:400;color:var(--muted)">　順位相関 '
+        + p.spearman.toFixed(3) + '</span></div>'
+        + '<p style="margin:8px 0 0;font-size:13.5px">'
+        + (weak
+          ? '前半の順位と後半の順位に、ほとんど関係がありませんでした。つまり前半で成績が良かったのは'
+            + '実力ではなく偶然です。<b>銘柄を成績順に並べて上位を選んでも、意味がありません。</b>'
+          : '前半の順位が後半にもある程度引き継がれています。銘柄の選別に意味がある可能性があります。'
+            + 'ただし別の期間でも同じか、確かめてから使ってください。')
+        + '</p></div>'
+        + '<div class="scroll"><table><thead><tr><th></th><th>前半の成績</th><th>後半の成績</th></tr></thead><tbody>'
+        + '<tr><td>前半の上位'+p.topN+'銘柄</td><td style="color:var(--green)">'+p.topFirst.toFixed(3)+'％</td>'
+        + '<td style="font-weight:700;color:'+(p.topSecond>p.allSecond?"var(--green)":"var(--up)")+'">'+p.topSecond.toFixed(3)+'％</td></tr>'
+        + '<tr><td>前半の下位'+p.topN+'銘柄</td><td style="color:var(--up)">'+p.botFirst.toFixed(3)+'％</td>'
+        + '<td>'+p.botSecond.toFixed(3)+'％</td></tr>'
+        + '<tr><td>全'+p.n+'銘柄の平均</td><td style="color:var(--muted)">—</td>'
+        + '<td>'+p.allSecond.toFixed(3)+'％</td></tr>'
+        + '</tbody></table></div>'
+        + '<p class="note"><b>見るところは右上の数字です。</b>'
+        + '前半の上位銘柄が後半も全体平均を上回っていれば、ランキングに意味があります。'
+        + '上乗せは '+(p.edge>=0?"+":"")+p.edge.toFixed(3)+'％ でした。'
+        + '相関係数（ピアソン）は '+p.pearson.toFixed(3)+' です。</p></div>';
+      h += '<div class="sec" style="display:none"><table><tbody>';
+    }
+  }
+  h += '</tbody></table></div><p class="note">合格の条件は、誤差の範囲が丸ごとプラス側にあり、基準（毎日買う）も上回り、過半数の銘柄で成立していること。</p></div>';
+  return h;
+}
+function row(k,v){ return '<div class="row"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>'; }
+function numRow(label,id,val,unit,step){
+  return '<div class="row"><span class="k">'+label+'</span><span class="v">'
+    + '<input type="number" step="'+step+'" id="'+id+'" value="'+val+'" style="width:92px"> '+unit+'</span></div>';
+}
+function viewFilter(){
+  if(!Object.keys(ST.built).filter(k=>!isIndex(k)).length)
+    return '<p class="empty">「データ」タブでCSVを読み込んでください。</p>';
+  let h='<div class="sec"><h2>3%下げに、条件を2つ重ねる</h2>'
+    + '<p class="note" style="margin-top:0">土台は「その日3%以上下げたら翌日買い」。'
+    + 'そこに<b>トレンド</b>と<b>下げ方</b>の条件を掛け合わせて、'+(TREND_F.length*SETUP_F.length)+'通りを比べます。</p>'
+    + '<p class="note"><b>'+(TREND_F.length*SETUP_F.length)+'通り試すので、時期を前半後半に割るだけでは足りません。</b>'
+    + '銘柄を奇数番目と偶数番目の2群に分け、<b>A群で最も良かった組み合わせを、B群で確かめます。</b>'
+    + 'A群の成績は「探した結果」なので当然良く見えます。信じてよいのはB群の数字だけです。</p>'
+    + '<button class="primary" id="runCombo"'+(ST.comboRun?" disabled":"")+'>'
+    + (ST.comboRun?"計算中…":"組み合わせを全部試す")+'</button></div>';
+  h+='<div class="sec"><h2>利確に届いた後、延ばすべきか</h2>'
+    + '<p class="note" style="margin-top:0">利確に到達したあとの扱いを5通り比べます。'
+    + '延長する場合、損切りは建値（Dはトレーリング）に上げるので、そこから下は損しません。'
+    + '評価はやはり<b>保有1日あたり</b>です。延ばせば1回は増えても、次のトレードが遅れるためです。</p>'
+    + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">'
+    + '<span class="k" style="font-size:12.5px">利確後に最大何日延ばすか</span>'
+    + '<input type="number" min="1" max="40" id="extraH" value="'+ST.extraH+'" style="width:64px"> 本'
+    + '<button class="primary" id="runExt"'+(ST.extRun?" disabled":"")+'>'
+    + (ST.extRun?"計算中…":"5通りを試す")+'</button></div>';
+  const E=ST.ext;
+  if(E && !E.few){
+    const nb=E.verifyNone, bb=E.verifyBest;
+    if(E.best && bb){
+      const better = bb.perDay > nb.perDay;
+      h+='<div class="verdict"><div class="big">'
+        + (better?'<span class="ok">延ばしたほうがよい</span>':'<span class="amber">今のまま利確で決済</span>')
+        + '</div><p style="margin:8px 0 0;font-size:13.5px">'
+        + 'A群で最も良かったのは <b>'+esc(E.best.mode.name)+'</b>。'
+        + 'B群に当てると 1日あたり <b>'+bb.perDay.toFixed(4)+'％</b>'
+        + '（1回'+bb.mean.toFixed(2)+'％・平均'+bb.bars.toFixed(1)+'日・勝率'+pctS(bb.wr)+'・'+bb.n+'回）。<br>'
+        + '今の設定（利確で決済）はB群で 1日あたり <b>'+nb.perDay.toFixed(4)+'％</b>'
+        + '（1回'+nb.mean.toFixed(2)+'％・平均'+nb.bars.toFixed(1)+'日・'+nb.n+'回）です。</p>'
+        + '<p class="note">'+(better
+          ? '差は1日あたり '+(bb.perDay-nb.perDay).toFixed(4)+'％。20営業日で '
+            + ((bb.perDay-nb.perDay)*20).toFixed(2)+'％の差になります。採用する価値があります。'
+          : 'A群で良く見えた延長方式は、B群では今の設定を上回りませんでした。'
+            + '利確に届いた後さらに伸びる回はありますが、<b>戻される回と相殺して、延ばす価値はありませんでした。</b>')
+        + '</p></div>';
+    }
+    h+='<div class="scroll"><table><thead><tr><th>方式</th><th>A群 1日あたり</th>'
+      + '<th>A群 1回</th><th>A群 保有</th><th>A群 勝率</th><th>A群 回数</th></tr></thead><tbody>';
+    E.rows.forEach(r=>{
+      const isNone=r.mode.id==="none";
+      h+='<tr'+(isNone?' style="background:var(--panel2)"':'')+'>'
+        + '<td style="white-space:normal;min-width:200px'+(isNone?';color:var(--brass)':'')+'">'+esc(r.mode.name)+'</td>'
+        + '<td style="font-weight:700;color:'+(r.A.perDay>0?"var(--green)":"var(--up)")+'">'+r.A.perDay.toFixed(4)+'</td>'
+        + '<td>'+r.A.mean.toFixed(2)+'％</td><td>'+r.A.bars.toFixed(1)+'日</td>'
+        + '<td>'+(r.A.n?pctS(r.A.wr):"—")+'</td><td>'+r.A.n+'</td></tr>';
+    });
+    h+='</tbody></table></div><p class="note">この表はA群（探索用）です。'
+      + '<b>判断は上のB群の結果だけで行ってください。</b>5通り試しているので、'
+      + 'A群で一番良いものが偶然である可能性が常にあります。</p>';
+  } else if(E && E.few){ h+='<p class="empty">銘柄が足りません。</p>'; }
+  h+='</div>';
+
+  h+='<div class="sec"><h2>利確・損切りの幅を探す</h2>'
+    + '<p class="note" style="margin-top:0">入口は「下降トレンド中に5%以上下げたら翌日買い」で固定。'
+    + '利確と損切りの倍率を'+(TPS_G.length*SLS_G.length)+'通り試します。'
+    + '<b>1度に1銘柄しか持てないので、評価は「1回あたり」ではなく「保有1日あたり」で行います。</b>'
+    + '幅を狭くすれば早く決着するぶん、次のトレードに移れるからです。</p>'
+    + '<button class="primary" id="runGrid"'+(ST.gridRun?" disabled":"")+'>'
+    + (ST.gridRun?"計算中…":"倍率を全部試す")+'</button>';
+  const G=ST.grid;
+  if(G && !G.few){
+    if(G.best && G.verify){
+      const better = G.verify.perDay > G.cur.perDay;
+      h+='<div class="verdict" style="margin-top:14px"><div class="big">'
+        + (better?'<span class="ok">今より良い設定がある</span>':'<span class="amber">今の設定のままでよい</span>')
+        + '</div><p style="margin:8px 0 0;font-size:13.5px">'
+        + 'A群で最も1日あたりが高かったのは <b>利確'+G.best.tp+'倍 / 損切り'+G.best.sl+'倍</b>。'
+        + 'それをB群に当てると 1日あたり <b>'+G.verify.perDay.toFixed(4)+'％</b>'
+        + '（1回'+G.verify.mean.toFixed(2)+'％・平均'+G.verify.bars.toFixed(1)+'日・勝率'+pctS(G.verify.wr)+'・'+G.verify.n+'回）。<br>'
+        + '今の設定（利確'+G.curTp+'倍 / 損切り'+G.curSl+'倍）はB群で 1日あたり <b>'+G.cur.perDay.toFixed(4)+'％</b>'
+        + '（1回'+G.cur.mean.toFixed(2)+'％・平均'+G.cur.bars.toFixed(1)+'日・勝率'+pctS(G.cur.wr)+'・'+G.cur.n+'回）です。</p>'
+        + '<p class="note">'+(better
+          ? '差は1日あたり '+(G.verify.perDay-G.cur.perDay).toFixed(4)+'％。'
+            + '20営業日で '+((G.verify.perDay-G.cur.perDay)*20).toFixed(2)+'％の差になります。'
+          : 'A群で見つけた設定は、B群では今の設定を上回りませんでした。変える理由がありません。')
+        + '</p></div>';
+    }
+    h+='<div class="scroll"><table><thead><tr><th>損切り ＼ 利確</th>'
+      + TPS_G.map(t=>'<th>'+t+'倍</th>').join("")+'</tr></thead><tbody>';
+    SLS_G.forEach(sl=>{
+      h+='<tr><td>'+sl+'倍</td>';
+      TPS_G.forEach(tp=>{
+        const c=G.cells.filter(x=>x.tp===tp&&x.sl===sl)[0];
+        if(!c||c.A.n<40){ h+='<td style="color:var(--muted)">—</td>'; return; }
+        const pd=c.A.perDay;
+        const isCur = (tp===G.curTp && sl===G.curSl);
+        h+='<td style="font-weight:700;color:'+(pd>0.15?"var(--green)":pd>0?"var(--brass)":"var(--up)")+';'
+          + (isCur?'outline:2px solid var(--paper)':'')+'">'+pd.toFixed(3)
+          + '<span style="font-weight:400;color:var(--muted);font-size:11px"><br>'
+          + c.A.mean.toFixed(1)+'％ '+c.A.bars.toFixed(1)+'日<br>'+pctS(c.A.wr)+' '+c.A.n+'回</span></td>';
+      });
+      h+='</tr>';
+    });
+    h+='</tbody></table></div><p class="note">大きい数字が「保有1日あたりの％」。下に1回あたり・平均保有日数・勝率・回数。'
+      + '白枠が今の設定です。<b>この表から選ばず、上のB群の判定だけで決めてください。</b></p>';
+  } else if(G && G.few){ h+='<p class="empty">銘柄が足りません。</p>'; }
+  h+='</div>';
+
+  const R=ST.combo;
+  if(!R) return h;
+  if(R.few) return h+'<p class="empty">銘柄が'+R.n+'件しかありません。10件以上必要です。</p>';
+
+  if(!R.best){
+    h+='<div class="msg" style="border-left-color:var(--up)">'
+      + '十分な回数がそろった組み合わせがありませんでした（最多でも '+R.maxN+' 回）。\n'
+      + '条件を2つ重ねるとシグナルが激減します。銘柄を増やすか、条件を1つに減らしてください。</div>';
+  }
+  if(R.best && R.verify){
+    const ok = R.verify.excess>0 && R.verify.n>=30;
+    h+='<div class="verdict"><div class="big">'
+      + (ok?'<span class="ok">B群でも通用した</span>':'<span class="warn">B群では通用しなかった</span>')
+      + '</div><p style="margin:8px 0 0;font-size:13.5px">'
+      + 'A群（'+R.nA+'銘柄）で最も良かったのは<b>「'+esc(R.best.sf.name)+'」×「'+esc(R.best.tf.name)+'」</b>。'
+      + 'A群では基準を '+(R.best.excess>=0?"+":"")+R.best.excess.toFixed(3)+'％ 上回りました（'+R.best.A.n+'回）。'
+      + '同じ条件をB群（'+R.nB+'銘柄）に当てると <b>'+(R.verify.excess>=0?"+":"")+R.verify.excess.toFixed(3)+'％</b>'
+      + '（'+R.verify.n+'回・勝率'+pctS(R.verify.wr)+'）でした。</p>'
+      + '<div class="scroll" style="margin-top:10px"><table><thead><tr><th></th><th>前半</th><th>後半</th><th>回数</th></tr></thead><tbody>'
+      + '<tr><td>A群（探索に使った）</td>'
+      + '<td style="color:'+(R.best.A.m1>0?"var(--green)":"var(--up)")+'">'+(R.best.A.m1==null?"—":(R.best.A.m1>=0?"+":"")+R.best.A.m1.toFixed(2)+"％")+'</td>'
+      + '<td style="color:'+(R.best.A.m2>0?"var(--green)":"var(--up)")+'">'+(R.best.A.m2==null?"—":(R.best.A.m2>=0?"+":"")+R.best.A.m2.toFixed(2)+"％")+'</td>'
+      + '<td>'+R.best.A.n+'</td></tr>'
+      + '<tr><td>B群（確認に使った）</td>'
+      + '<td style="font-weight:700;color:'+(R.verify.m1>0?"var(--green)":"var(--up)")+'">'+(R.verify.m1==null?"—":(R.verify.m1>=0?"+":"")+R.verify.m1.toFixed(2)+"％")+'</td>'
+      + '<td style="font-weight:700;color:'+(R.verify.m2>0?"var(--green)":"var(--up)")+'">'+(R.verify.m2==null?"—":(R.verify.m2>=0?"+":"")+R.verify.m2.toFixed(2)+"％")+'</td>'
+      + '<td>'+R.verify.n+'</td></tr></tbody></table></div>'
+      + '<p class="note"><b>A群とB群は同じ20年間を見ています。</b>銘柄が違うだけなので、'
+      + '市場全体で起きたこと（暴落とその後の回復など）は両方に共通して含まれます。'
+      + '時期をまたいで通用するかは、上の前半・後半の欄で確かめてください。'
+      + 'どちらかがマイナスなら、特定の時期に依存しています。</p>'
+      + '<p class="note">'
+      + (ok ? '別の銘柄群でも基準を上回りました。絞り込みに意味があった可能性があります。'
+            : 'A群で良く見えたのは、'+R.tried+'通り試したうちの一番運が良かったものを選んだからです。'
+              + '絞り込みに実体はありませんでした。')
+      + '　参考：条件なしの「3%下げ」だけだとB群で '
+      + (R.plainB.mean-R.baseB.mean>=0?"+":"")+(R.plainB.mean-R.baseB.mean).toFixed(3)+'％（'+R.plainB.n+'回）です。'
+      + '</p></div>';
+  }
+
+  if(R.top5 && R.top5.length){
+    h+='<div class="sec"><h2>上位5つをB群で確かめた結果</h2>'
+      + '<p class="note" style="margin-top:0">A群で成績の良かった上位5つを、それぞれB群に当てました。'
+      + '<b>B群でもプラスだったものだけが、実際に使える候補です。</b></p>'
+      + '<div class="scroll"><table><thead><tr><th>組み合わせ</th><th>A群</th>'
+      + '<th>B群</th><th>B群 前半</th><th>B群 後半</th><th>B群 回数</th><th>B群 勝率</th></tr></thead><tbody>';
+    R.top5.forEach(t=>{
+      const ok = t.bEx!=null && t.bEx>0 && t.bM1>0 && t.bM2>0 && t.bN>=100;
+      h+='<tr><td style="white-space:normal;min-width:190px">'+esc(t.sf.name)+' × '+esc(t.tf.name)+'</td>'
+        + '<td style="color:var(--muted)">'+(t.aEx>=0?"+":"")+t.aEx.toFixed(2)+'％</td>'
+        + '<td style="font-weight:700;color:'+(ok?"var(--green)":"var(--up)")+'">'
+        + (t.bEx==null?"—":(t.bEx>=0?"+":"")+t.bEx.toFixed(2)+"％")+'</td>'
+        + '<td style="color:'+(t.bM1>0?"var(--green)":"var(--up)")+'">'+(t.bM1==null?"—":(t.bM1>=0?"+":"")+t.bM1.toFixed(2))+'</td>'
+        + '<td style="color:'+(t.bM2>0?"var(--green)":"var(--up)")+'">'+(t.bM2==null?"—":(t.bM2>=0?"+":"")+t.bM2.toFixed(2))+'</td>'
+        + '<td>'+t.bN+'</td><td>'+(t.bN?pctS(t.bWr):"—")+'</td></tr>';
+    });
+    h+='</tbody></table></div><p class="note">緑になったものは、別の銘柄群でも時期を分けても成立しました。'
+      + '赤はA群で良く見えただけです。緑が複数あれば、シグナルが同時に出たときに'
+      + '<b>成績の良いほうを選ぶ</b>判断ができます。</p></div>';
+  }
+  if(R.quint){
+    const worst=R.quint[0], ok = worst.excess!=null && worst.excess>0;
+    h+='<div class="sec"><h2>生存バイアスの確認</h2>'
+      + '<p class="note" style="margin-top:0">20年間のトータルリターンで銘柄を5分割し、'
+      + '<b>最下位グループでも同じ優位性が出るか</b>を見ます。最下位は「倒産はしなかったが限りなく近かった」銘柄群です。'
+      + 'ここで消えるなら、この手法は<b>回復した銘柄だけで成立していた</b>ことになります。</p>'
+      + '<div class="verdict"><div class="big">'
+      + (ok ? '<span class="ok">最下位グループでも残った</span>' : '<span class="warn">最下位グループでは消えた</span>')
+      + '</div><p style="margin:8px 0 0;font-size:13.5px">'
+      + (ok ? '20年で最も値下がりした銘柄群でも、そのグループ自身の基準を '
+             + '+'+worst.excess.toFixed(3)+'％ 上回りました。優位性は「上がる銘柄を選べたこと」ではなく、'
+             + '「下げた直後に買うこと」から来ている可能性が高いです。'
+           : '最も値下がりした銘柄群では、基準を上回りませんでした（'
+             + (worst.excess==null?'回数不足':worst.excess.toFixed(3)+'％')+'）。'
+             + '<b>この優位性は、結果的に回復した銘柄に偏っています。</b>'
+             + '倒産して消えた銘柄がデータに無いことを考えると、実際の期待値はさらに低くなります。')
+      + '</p></div>'
+      + '<div class="scroll"><table><thead><tr><th>グループ</th><th>20年リターン</th><th>銘柄</th>'
+      + '<th>回数</th><th>勝率</th><th>このルール</th><th>その群の基準</th><th>基準超過</th></tr></thead><tbody>';
+    const lab=["最下位（最も下落）","下位","中位","上位","最上位（最も上昇）"];
+    R.quint.forEach(q=>{
+      h+='<tr><td>'+lab[q.g]+'</td>'
+        + '<td style="color:var(--muted)">'+(q.retMid>=0?"+":"")+q.retMid.toFixed(0)+'％</td>'
+        + '<td>'+q.n+'</td><td>'+q.trades+'</td>'
+        + '<td>'+(q.trades?pctS(q.wr):"—")+'</td>'
+        + '<td>'+(q.trades?(q.mean>=0?"+":"")+q.mean.toFixed(2)+"％":"—")+'</td>'
+        + '<td style="color:var(--muted)">'+(q.trades?(q.base>=0?"+":"")+q.base.toFixed(2)+"％":"—")+'</td>'
+        + '<td style="font-weight:700;color:'+(q.excess==null?"var(--muted)":q.excess>0?"var(--green)":"var(--up)")+'">'
+        + (q.excess==null?"—":(q.excess>=0?"+":"")+q.excess.toFixed(2)+"％")+'</td></tr>';
+    });
+    h+='</tbody></table></div>'
+      + '<p class="note"><b>見るのは一番左上の行の、一番右の数字です。</b>'
+      + '各グループは自分自身の基準と比較しているので、値下がり銘柄群の成績が低いこと自体は問題ありません。'
+      + '問われているのは、どのグループでも同じだけ基準を上回るかどうかです。'
+      + 'なお、この検証をもってしても倒産して上場廃止になった銘柄は補えません。'
+      + '実際の期待値はここに出ている数字より低いと考えてください。</p></div>';
+  }
+  h+='<div class="sec"><h2>A群での全組み合わせ（探索用・信じないこと）</h2><div class="scroll"><table><thead><tr>'
+    + '<th>下げ方 ＼ トレンド</th>'+TREND_F.map(t=>'<th>'+esc(t.name)+'</th>').join("")+'</tr></thead><tbody>';
+  SETUP_F.forEach(sf=>{
+    h+='<tr><td style="white-space:normal;min-width:150px">'+esc(sf.name)+'</td>';
+    TREND_F.forEach(tf=>{
+      const c=R.cells.filter(x=>x.tf.id===tf.id&&x.sf.id===sf.id)[0];
+      if(!c||c.A.n<20||c.excess==null){ h+='<td style="color:var(--muted)">—</td>'; return; }
+      const ex=c.excess, col= c.stable===false?"var(--muted)": ex>0.3?"var(--green)": ex>0?"var(--brass)":"var(--up)";
+      h+='<td style="color:'+col+';font-weight:700">'+(ex>=0?"+":"")+ex.toFixed(2)
+        + '<span style="font-weight:400;color:var(--muted);font-size:11px"><br>'+c.A.n+'回 '+pctS(c.A.wr)+'</span></td>';
+    });
+    h+='</tr>';
+  });
+  h+='</tbody></table></div><p class="note">数字は「基準（毎日買う）をどれだけ上回ったか」。'
+    + '灰色は前半か後半のどちらかがマイナスだった組み合わせです。'
+    + '<b>この表から良さそうなものを自分で選ばないでください。</b>それが'+R.tried+'回テストの罠そのものです。</p></div>';
+  return h;
+}
+
+function viewJournal(){
+  const S=summarize(ST.trades,ST.start);
+  let h='<div class="hero">'
+    + cell("累計損益", S.n?yen(S.total):"—", S.n?"円・"+S.n+" 回":"記録なし", S.total>0?"var(--green)":S.total<0?"var(--up)":"var(--paper)")
+    + cell("現在の資金", Math.round(S.eq).toLocaleString(), "円（開始 "+ST.start.toLocaleString()+"）","var(--paper)")
+    + cell("勝率", S.n?pctS(S.winRate):"—", S.n?S.winN+" 勝 "+S.lossN+" 敗":"—","var(--paper)")
+    + cell("1回あたりの期待値", S.n?yen(S.exp):"—","円", S.exp>0?"var(--green)":S.exp<0?"var(--up)":"var(--paper)")
+    + '</div>';
+  if(S.n>1){
+    const ys=S.curve.map(p=>p.eq), lo=Math.min.apply(null,ys), hi=Math.max.apply(null,ys);
+    const pad=(hi-lo)*0.12||1;
+    const X=i=>10+834*(i/(S.curve.length-1));
+    const Y=v=>10+140*(1-(v-(lo-pad))/((hi+pad)-(lo-pad)));
+    h += '<div style="background:var(--panel);border:1px solid var(--rule);padding:8px;margin-bottom:16px">'
+      + '<svg viewBox="0 0 920 160" style="display:block;width:100%;height:auto">'
+      + '<line x1="10" x2="844" y1="'+Y(ST.start)+'" y2="'+Y(ST.start)+'" stroke="var(--muted)" stroke-width="1" stroke-dasharray="4 4" opacity=".6"/>'
+      + '<polyline fill="none" stroke-width="1.8" stroke="'+(S.eq>=ST.start?"var(--green)":"var(--up)")+'" points="'
+      + S.curve.map((p,i)=>X(i)+","+Y(p.eq)).join(" ")+'"/>'
+      + '<text x="850" y="'+(Y(S.eq)+4)+'" font-size="11.5" font-weight="700" fill="'+(S.eq>=ST.start?"var(--green)":"var(--up)")+'">'
+      + Math.round(S.eq).toLocaleString()+'</text></svg></div>';
+  }
+  const e = ST.editId ? ST.trades.filter(t=>t.id===ST.editId)[0] : null;
+  const f = e || {date:todayStr(),symbol:"",side:"buy",qty:"",entry:"",exit:"",fee:"0",pnl:"",
+    exitReason:"利確",rule:"ルール通り",mood:"落ち着いていた",note:""};
+  h += '<div class="sec"><h2>'+(e?"記録を編集する":"取引を記録する")+'</h2><div class="form">'
+    + fld("日時",'<input type="datetime-local" id="j_date" value="'+esc(f.date)+'">')
+    + fld("銘柄",'<input id="j_symbol" value="'+esc(f.symbol)+'" placeholder="7203 トヨタ">')
+    + fld("方向",'<select id="j_side"><option value="buy"'+(f.side==="buy"?" selected":"")+'>買い</option><option value="sell"'+(f.side==="sell"?" selected":"")+'>売り</option></select>')
+    + fld("株数",'<input type="number" id="j_qty" value="'+esc(f.qty)+'">')
+    + fld("建値",'<input type="number" step="any" id="j_entry" value="'+esc(f.entry)+'">')
+    + fld("決済値",'<input type="number" step="any" id="j_exit" value="'+esc(f.exit)+'">')
+    + fld("手数料（円）",'<input type="number" step="any" id="j_fee" value="'+esc(f.fee)+'">')
+    + fld("損益（円）",'<input type="number" id="j_pnl" value="'+esc(f.pnl)+'" style="font-weight:700"><span style="font-size:11px;color:var(--muted)">空欄なら自動計算</span>')
+    + fld("決済理由", sel("j_exitReason",["利確","損切り","途中で手仕舞い","引けで決済"],f.exitReason))
+    + fld("自分のルールを", sel("j_rule",["ルール通り","ルールを破った"],f.rule))
+    + '<div class="span2">'+fld("入るときの気持ち", sel("j_mood",["落ち着いていた","焦っていた","取り返したかった","退屈で入った"],f.mood))+'</div>'
+    + '<div class="span4">'+fld("なぜ入ったか・振り返り",'<textarea id="j_note">'+esc(f.note)+'</textarea>')+'</div>'
+    + '</div><div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">'
+    + '<button class="primary" id="j_submit">'+(e?"更新する":"記録する")+'</button>'
+    + (e?'<button id="j_cancel">編集をやめる</button>':"")
+    + '<span style="margin-left:auto;display:flex;gap:8px">'
+    + '<button id="j_import">CSVから読み込む</button>'
+    + '<button id="j_export"'+(S.n?"":" disabled")+'>CSVで書き出す</button>'
+    + '<input type="file" id="f2" accept=".csv" class="hide"></span></div></div>';
+  if(S.n>0){
+    h += '<div class="sec"><h2>詳しい数字</h2>'
+      + row("平均利益 / 平均損失",'<span class="ok">'+yen(S.avgWin)+'</span> / <span class="warn">−'+Math.round(S.avgLoss).toLocaleString()+'</span> 円')
+      + row("プロフィットファクター",'<b class="'+(S.pf>1.2?"ok":S.pf<1?"warn":"amber")+'">'+(S.pf!=null?S.pf.toFixed(2):"—")+'</b>')
+      + row("最大ドローダウン",'<b class="'+(S.maxDD>0.3?"warn":"")+'">'+pctS(S.maxDD)+'</b>（'+Math.round(S.maxDDyen).toLocaleString()+' 円）')
+      + row("最大連勝 / 最大連敗", S.maxWin+' / <span class="'+(S.maxLoss>=5?"warn":"")+'">'+S.maxLoss+'</span>')
+      + '</div>';
+    const tabs=[["symbol","銘柄別",S.bySymbol],["rule","ルール別",S.byRule],["mood","メンタル別",S.byMood],["exit","決済理由別",S.byExit]];
+    const act=tabs.filter(t=>t[0]===ST.jTab)[0]||tabs[0];
+    h += '<div class="sec"><h2>どこで勝って、どこで負けているか</h2><div class="chips">'
+      + tabs.map(t=>'<button class="chip'+(ST.jTab===t[0]?" on":"")+'" data-jtab="'+t[0]+'">'+t[1]+'</button>').join("")
+      + '</div><div class="scroll"><table><thead><tr><th>'+act[1].replace("別","")+'</th><th>回数</th><th>勝率</th><th>損益</th></tr></thead><tbody>'
+      + act[2].map(g=>'<tr><td>'+esc(g.k)+'</td><td>'+g.n+'</td><td>'+pctS(g.w/g.n)+'</td>'
+        + '<td style="color:'+(g.pnl>0?"var(--green)":g.pnl<0?"var(--up)":"var(--paper)")+';font-weight:700">'+yen(g.pnl)+'</td></tr>').join("")
+      + '</tbody></table></div>'
+      + (ST.jTab==="rule"&&S.byRule.length>1?'<p class="note">ここが一番大事な表です。「ルールを破った」側だけが沈んでいるなら、手法より先にルールを守る仕組みを作るほうが効きます。</p>':"")
+      + '</div>';
+    h += '<div class="sec"><h2>履歴</h2><div class="scroll"><table><thead><tr>'
+      + '<th>日時</th><th>銘柄</th><th>方向</th><th>建値</th><th>決済</th><th>損益</th><th>ルール</th><th></th></tr></thead><tbody>'
+      + S.list.slice().reverse().map(t=>'<tr><td>'+esc(t.date.replace("T"," "))+'</td><td>'+esc(t.symbol)+'</td>'
+        + '<td style="color:'+(t.side==="buy"?"var(--up)":"var(--down)")+'">'+(t.side==="buy"?"買":"売")+'</td>'
+        + '<td>'+(t.entry||"—")+'</td><td>'+(t.exit||"—")+'</td>'
+        + '<td style="color:'+(t.pnl>0?"var(--green)":t.pnl<0?"var(--up)":"var(--paper)")+';font-weight:700">'+yen(t.pnl)+'</td>'
+        + '<td style="color:'+(t.rule==="ルールを破った"?"var(--up)":"var(--muted)")+'">'+(t.rule==="ルールを破った"?"破った":"通り")+'</td>'
+        + '<td><button class="link" data-edit="'+t.id+'">編集</button><button class="link" data-del="'+t.id+'">削除</button></td></tr>').join("")
+      + '</tbody></table></div></div>';
+  }
+  return h;
+}
+function cell(lab,big,sm,col){
+  return '<div class="cell"><div class="lab">'+lab+'</div><div class="big" style="color:'+col+'">'+big+'</div><div class="sm">'+sm+'</div></div>';
+}
+function fld(lab,inner){ return '<div><label>'+lab+'</label>'+inner+'</div>'; }
+function sel(id,opts,cur){
+  return '<select id="'+id+'">'+opts.map(o=>'<option'+(o===cur?" selected":"")+'>'+o+'</option>').join("")+'</select>';
+}
+
+/* --- イベント --- */
+function wire(){
+  document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{ ST.tab=b.dataset.tab; ST.msg=""; render(); });
+  document.querySelectorAll("[data-jtab]").forEach(b=>b.onclick=()=>{ ST.jTab=b.dataset.jtab; render(); });
+  const drop=document.getElementById("drop"), f1=document.getElementById("f1");
+  if(drop){
+    drop.onclick=()=>f1.click();
+    drop.ondragover=e=>{e.preventDefault();drop.classList.add("over");};
+    drop.ondragleave=()=>drop.classList.remove("over");
+    drop.ondrop=e=>{e.preventDefault();drop.classList.remove("over");onFiles(e.dataTransfer.files);};
+    f1.onchange=e=>{onFiles(e.target.files);e.target.value="";};
+  }
+  const clr=document.getElementById("clear");
+  if(clr) clr.onclick=()=>{
+    Object.keys(ST.sets).forEach(k=>LS.del("kn:d:"+k));
+    ST.sets={}; ST.built={}; ST.res=null; LS.set("kn:index","[]");
+    ST.msg="読み込んだデータを全部消しました。"; render();
+  };
+  ["H","tpM","slM","cost","start","riskPct"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.onchange=()=>{
+      const v=parseFloat(el.value);
+      ST[id]= isFinite(v)?v:ST[id];
+      if(id==="start") ST.budget=ST.start;
+      ST.res=null; saveJournal(); render();
+    };
+  });
+  const em=document.getElementById("exitMode");
+  if(em) em.onchange=()=>{ ST.exitMode=em.value; ST.res=null; saveJournal(); render(); };
+  const lo=document.getElementById("longOnly");
+  if(lo) lo.onchange=()=>{ ST.longOnly=lo.checked; ST.res=null; saveJournal(); render(); };
+  const mf=document.getElementById("mktFilter");
+  if(mf) mf.onchange=()=>{ ST.mktFilter=mf.value; ST.res=null; saveJournal(); render(); };
+  const eh=document.getElementById("extraH");
+  if(eh) eh.onchange=()=>{ const v=parseInt(eh.value,10); if(v>0){ ST.extraH=v; ST.ext=null; render(); } };
+  const re=document.getElementById("runExt");
+  if(re) re.onclick=()=>{
+    ST.extRun=true; render();
+    setTimeout(()=>{ try{ ST.ext=runExtensionTest(ST.extraH); }
+      catch(e){ ST.msg="計算エラー: "+e.message; } ST.extRun=false; render(); },30);
+  };
+  const rg=document.getElementById("runGrid");
+  if(rg) rg.onclick=()=>{
+    ST.gridRun=true; render();
+    setTimeout(()=>{
+      try{
+        const rule=RULES.filter(r=>r.id==="drop5_dn")[0]||BASE_DROP;
+        ST.grid=runRatioGrid(rule);
+      }catch(e){ ST.msg="計算エラー: "+e.message; }
+      ST.gridRun=false; render();
+    },30);
+  };
+  const rc=document.getElementById("runCombo");
+  if(rc) rc.onclick=()=>{
+    ST.comboRun=true; render();
+    setTimeout(()=>{ try{ ST.combo=runCombos(); }catch(e){ ST.msg="計算エラー: "+e.message; }
+      ST.comboRun=false; render(); },30);
+  };
+  const run=document.getElementById("run");
+  if(run) run.onclick=()=>{
+    ST.running=true; render();
+    setTimeout(()=>{ try{ runAll(); }catch(err){ ST.msg="計算中にエラー: "+err.message; }
+      ST.running=false; render(); },30);
+  };
+  const sub=document.getElementById("j_submit");
+  if(sub) sub.onclick=submitTrade;
+  const can=document.getElementById("j_cancel");
+  if(can) can.onclick=()=>{ ST.editId=null; render(); };
+  const exp=document.getElementById("j_export");
+  if(exp) exp.onclick=exportCsv;
+  const imp=document.getElementById("j_import"), f2=document.getElementById("f2");
+  if(imp){ imp.onclick=()=>f2.click(); f2.onchange=e=>{ importCsv(e.target.files); e.target.value=""; }; }
+  document.querySelectorAll("[data-only]").forEach(b=>{
+    b.onclick=()=>{ ST.onlyFired = b.dataset.only==="1"; render(); };
+  });
+  document.querySelectorAll("[data-qty]").forEach(el=>{
+    el.onchange=()=>{
+      const v=parseInt(el.value,10);
+      if(Number.isFinite(v)&&v>0) ST.qtyOverride[el.dataset.qty]=v;
+      else delete ST.qtyOverride[el.dataset.qty];
+      render();
+    };
+  });
+  document.querySelectorAll("[data-qtyreset]").forEach(b=>{
+    b.onclick=()=>{ delete ST.qtyOverride[b.dataset.qtyreset]; render(); };
+  });
+  document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>{ ST.editId=b.dataset.edit; render(); window.scrollTo({top:0,behavior:"smooth"}); });
+  document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
+    ST.trades=ST.trades.filter(t=>t.id!==b.dataset.del);
+    if(ST.editId===b.dataset.del) ST.editId=null;
+    saveJournal(); render();
+  });
+}
+function val(id){ const e=document.getElementById(id); return e?e.value:""; }
+function submitTrade(){
+  const symbol=val("j_symbol").trim();
+  if(!symbol){ ST.msg="銘柄を入れてください。"; render(); return; }
+  const entry=parseFloat(val("j_entry")), exit=parseFloat(val("j_exit")),
+        qty=parseFloat(val("j_qty")), fee=parseFloat(val("j_fee"))||0;
+  let pnl=parseFloat(val("j_pnl"));
+  if(!isFinite(pnl)){
+    if([entry,exit,qty].every(isFinite)) pnl=(exit-entry)*qty*(val("j_side")==="buy"?1:-1)-fee;
+    else { ST.msg="損益が計算できません。数量・建値・決済値を入れるか、損益を直接入力してください。"; render(); return; }
+  }
+  const rec={ id: ST.editId || ("t"+Date.now()+Math.random().toString(36).slice(2,6)),
+    date:val("j_date"), symbol:symbol, side:val("j_side"),
+    qty:qty||0, entry:entry||0, exit:exit||0, fee:fee, pnl:pnl,
+    exitReason:val("j_exitReason"), rule:val("j_rule"), mood:val("j_mood"), note:val("j_note") };
+  ST.trades = ST.editId ? ST.trades.map(t=>t.id===ST.editId?rec:t) : ST.trades.concat([rec]);
+  ST.editId=null; ST.msg=""; saveJournal(); render();
+}
+function exportCsv(){
+  const S=summarize(ST.trades,ST.start);
+  const q=s=>'"'+String(s==null?"":s).replace(/"/g,'""')+'"';
+  const body=S.list.map(t=>[t.date,t.symbol,t.side==="buy"?"買":"売",t.qty,t.entry,t.exit,t.fee,
+    Math.round(t.pnl),t.exitReason,t.rule,t.mood,t.note].map(q).join(",")).join("\n");
+  const blob=new Blob(["\uFEFF日時,銘柄,方向,数量,建値,決済値,手数料,損益,決済理由,ルール,メンタル,メモ\n"+body],
+    {type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="trades-"+new Date().toISOString().slice(0,10)+".csv";
+  a.click(); URL.revokeObjectURL(a.href);
+}
+async function importCsv(files){
+  if(!files||!files.length) return;
+  try{
+    const txt=await readSmart(files[0]);
+    const lines=txt.split(/\r?\n/).filter(l=>l.trim());
+    if(lines.length<2){ ST.msg="記録が入っていないファイルです。"; render(); return; }
+    const seen={}; ST.trades.forEach(t=>{ seen[t.date+"|"+t.symbol]=1; });
+    const add=[];
+    lines.slice(1).forEach(l=>{
+      const r=splitLine(l,",");
+      if(r.length<8) return;
+      const p=parseFloat(r[7]);
+      if(!r[0]||!r[1]||!isFinite(p)) return;
+      const key=r[0]+"|"+r[1];
+      if(seen[key]) return;
+      seen[key]=1;
+      add.push({id:"t"+Date.now()+Math.random().toString(36).slice(2,6),
+        date:r[0],symbol:r[1],side:r[2]==="売"?"sell":"buy",
+        qty:parseFloat(r[3])||0,entry:parseFloat(r[4])||0,exit:parseFloat(r[5])||0,
+        fee:parseFloat(r[6])||0,pnl:p,exitReason:r[8]||"利確",rule:r[9]||"ルール通り",
+        mood:r[10]||"落ち着いていた",note:r[11]||""});
+    });
+    if(!add.length){ ST.msg="新しく追加できる記録がありませんでした。"; render(); return; }
+    ST.trades=ST.trades.concat(add);
+    ST.msg=add.length+" 件の記録を読み込みました。";
+    saveJournal(); render();
+  }catch(e){ ST.msg="記録のファイルを読めませんでした。"; render(); }
+}
+async function onFiles(list){
+  ST.msg="読み込み中…"; render();
+  let ok=0; const ng=[];
+  for(const file of list){
+    try{
+      const rows=parseCSV(await readSmart(file));
+      ST.sets[file.name.replace(/\.(csv|txt|tsv)$/i,"").slice(0,40)]=rows; ok++;
+    }catch(e){ ng.push(file.name+"："+e.message); }
+  }
+  rebuild(); ST.res=null;
+  ST.msg=[ok?ok+" 件を読み込みました。":"" ].concat(ng.slice(0,5)).filter(Boolean).join("\n");
+  saveSets();
+  ST.tab="sum"; render();
+}
+
+load(); rebuild(); render();
+</script>
+</body>
+</html>
